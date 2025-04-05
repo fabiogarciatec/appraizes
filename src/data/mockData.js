@@ -58,6 +58,40 @@ export const machineModels = [
   { id: 10, name: '420F', familyId: 5 }
 ];
 
+// Equipamentos (Máquinas dos clientes)
+export const equipments = [
+  { 
+    id: 1, 
+    chassis: 'EX200-12345', 
+    series: 'Série 5', 
+    modelId: 1, 
+    familyId: 1, 
+    year: 2018, 
+    hourmeter: 3500, 
+    clientId: 1 
+  },
+  { 
+    id: 2, 
+    chassis: 'WA320-54321', 
+    series: 'Série 7', 
+    modelId: 3, 
+    familyId: 2, 
+    year: 2020, 
+    hourmeter: 1200, 
+    clientId: 2 
+  },
+  { 
+    id: 3, 
+    chassis: 'D6-98765', 
+    series: 'Série R', 
+    modelId: 5, 
+    familyId: 3, 
+    year: 2019, 
+    hourmeter: 2800, 
+    clientId: 3 
+  }
+];
+
 // Part Categories
 export const partCategories = [
   { id: 1, name: 'Filtro' },

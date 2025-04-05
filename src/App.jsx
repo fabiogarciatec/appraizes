@@ -17,6 +17,10 @@ import NewQuoteRequest from './pages/NewQuoteRequest'
 import IdentifyPart from './pages/IdentifyPart'
 import PartDictionary from './pages/PartDictionary'
 import ClientHistory from './pages/ClientHistory'
+import UserManagement from './pages/UserManagement'
+import ClientManagement from './pages/ClientManagement'
+import EquipmentManagement from './pages/EquipmentManagement'
+import PartManagement from './pages/PartManagement'
 import NotFound from './pages/NotFound'
 
 // Estilos globais
@@ -95,7 +99,11 @@ function App() {
               <Route path="solicitacoes/nova" element={<NewQuoteRequest />} />
               <Route path="solicitacoes/:id/identificar" element={<IdentifyPart />} />
               <Route path="dicionario" element={<PartDictionary />} />
+              <Route path="clientes" element={<ClientManagement />} />
               <Route path="clientes/:id/historico" element={<ClientHistory />} />
+              <Route path="equipamentos" element={<EquipmentManagement />} />
+              <Route path="pecas" element={<PartManagement />} />
+              <Route path="usuarios" element={<UserManagement />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

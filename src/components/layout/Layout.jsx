@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
   AppBar, 
   Box, 
@@ -16,7 +16,8 @@ import {
   Typography, 
   Avatar,
   Menu,
-  MenuItem
+  MenuItem,
+  alpha
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -25,11 +26,16 @@ import {
   Add as AddIcon,
   Book as BookIcon,
   Logout as LogoutIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Info as InfoIcon,
+  ManageAccounts as ManageAccountsIcon,
+  Business as BusinessIcon,
+  Construction as ConstructionIcon,
+  Build as BuildIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 
-const drawerWidth = 240;
+const drawerWidth = 250;
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,6 +43,7 @@ export default function Layout() {
   const [anchorEl, setAnchorEl] = useState(null);
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Estilo global para remover margens e padding do body
   useEffect(() => {
@@ -85,34 +92,146 @@ export default function Layout() {
     navigate('/login');
   };
 
-  const menuItems = [
+  // Itens de menu comuns a todos os usuários
+  const commonMenuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Solicitações', icon: <ListAltIcon />, path: '/solicitacoes' },
     { text: 'Nova Solicitação', icon: <AddIcon />, path: '/solicitacoes/nova' },
+    { text: 'Clientes', icon: <BusinessIcon />, path: '/clientes' },
+    { text: 'Equipamentos', icon: <ConstructionIcon />, path: '/equipamentos' },
+    { text: 'Peças', icon: <BuildIcon />, path: '/pecas' },
     { text: 'Dicionário de Peças', icon: <BookIcon />, path: '/dicionario' },
+    { text: 'Gerenciar Usuários', icon: <ManageAccountsIcon />, path: '/usuarios' },
+  ];
+  
+  // Itens de menu apenas para administradores (reservado para futuras opções exclusivas)
+  const adminMenuItems = [];
+  
+  // Combina os itens de menu com base na função do usuário
+  const menuItems = [
+    ...commonMenuItems,
+    ...(currentUser?.role === 'admin' ? adminMenuItems : [])
   ];
 
   const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box
+        sx={{
+          py: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          backgroundColor: 'primary.main',
+          color: 'white',
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 600,
+            letterSpacing: 1,
+            textAlign: 'center'
+          }}
+        >
           Appraizes
         </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => navigate(item.path)}>
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+      </Box>
+      <Divider sx={{ mx: 2 }} />
+      <List sx={{ px: 1, mt: 1, flexGrow: 1 }}>
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path || 
+                         (item.path !== '/' && location.pathname.startsWith(item.path));
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton 
+                onClick={() => navigate(item.path)}
+                sx={{
+                  borderRadius: 1.5,
+                  py: 1,
+                  backgroundColor: isActive ? alpha('#1976d2', 0.08) : 'transparent',
+                  '&:hover': {
+                    backgroundColor: isActive ? alpha('#1976d2', 0.12) : alpha('#1976d2', 0.04),
+                  },
+                  transition: 'background-color 0.2s ease-in-out'
+                }}
+              >
+                <ListItemIcon sx={{ 
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                  minWidth: 40
+                }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? 'primary.main' : 'text.primary',
+                    fontSize: '0.95rem'
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
-    </div>
+      
+      <Box sx={{ mt: 'auto', p: 2 }}>
+        <Divider sx={{ mb: 2 }} />
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 1.5,
+          px: 1
+        }}>
+          <Avatar 
+            sx={{ 
+              width: 32, 
+              height: 32, 
+              bgcolor: 'primary.main',
+              fontSize: '0.875rem',
+              mr: 1.5
+            }}
+          >
+            {currentUser?.name?.charAt(0) || 'U'}
+          </Avatar>
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {currentUser?.name || 'Usuário'}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: 'text.secondary',
+                display: 'block',
+                lineHeight: 1.2
+              }}
+            >
+              {currentUser?.email || 'usuário@exemplo.com'}
+            </Typography>
+          </Box>
+        </Box>
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            color: 'text.disabled',
+            px: 1
+          }}
+        >
+          <InfoIcon sx={{ fontSize: 12, mr: 0.5 }} />
+          Versão 1.0.0
+        </Typography>
+      </Box>
+    </Box>
   );
 
   return (
@@ -203,7 +322,12 @@ export default function Layout() {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              backgroundColor: '#ffffff',
+              borderRight: '1px solid rgba(0, 0, 0, 0.06)'
+            },
           }}
         >
           {drawer}
@@ -215,8 +339,10 @@ export default function Layout() {
             '& .MuiDrawer-paper': { 
               boxSizing: 'border-box', 
               width: drawerWidth,
-              backgroundColor: '#f5f5f5',
-              borderRight: '1px solid rgba(0, 0, 0, 0.12)'
+              backgroundColor: '#ffffff',
+              borderRight: '1px solid rgba(0, 0, 0, 0.06)',
+              boxShadow: '0 0 20px rgba(0, 0, 0, 0.03)',
+              overflow: 'hidden'
             },
           }}
           open
