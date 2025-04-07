@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  # Serviço para a aplicação (API + Frontend)
+  appraizes:
+    image: fatecinfo/appraizes:latest
+    networks:
+      - minha_rede
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=207.180.249.172
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=Fatec555133
+      - DB_NAME=appraizes_db
+      - API_PORT=3001
+    volumes:
+      - appraizes_logs:/app/logs
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      labels:
+        # Configuração comum
+        - traefik.enable=true
+        
+        # Configuração para o frontend (rota principal)
+        - traefik.http.routers.appraizes-frontend.rule=Host(`raizesapp.fatec.info`)
+        - traefik.http.routers.appraizes-frontend.entrypoints=websecure
+        - traefik.http.routers.appraizes-frontend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.appraizes-frontend.service=appraizes-frontend
+        - traefik.http.services.appraizes-frontend.loadbalancer.server.port=5173
+        
+        # Configuração para a API
+        - traefik.http.routers.appraizes-api.rule=Host(`raizesapp.fatec.info`) && PathPrefix(`/api`)
+        - traefik.http.routers.appraizes-api.entrypoints=websecure
+        - traefik.http.routers.appraizes-api.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.appraizes-api.service=appraizes-api
+        - traefik.http.services.appraizes-api.loadbalancer.server.port=3001
+
+networks:
+  minha_rede:
+    external: true
+    name: minha_rede
+
+volumes:
+  appraizes_logs:
+    external: true
+    name: appraizes_logs
