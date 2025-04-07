@@ -32,8 +32,8 @@ O workflow configurado no arquivo `.github/workflows/docker-publish.yml` fará o
 3. Fará login no Docker Hub usando as credenciais configuradas
 4. Construirá a imagem Docker a partir do Dockerfile
 5. Enviará a imagem para o Docker Hub com as tags:
-   - `fatec@fatec.info/appraizes:latest`
-   - `fatec@fatec.info/appraizes:[hash do commit]`
+   - `seu-usuario/appraizes:latest`
+   - `seu-usuario/appraizes:[hash do commit]`
 
 ## Executando o Workflow Manualmente
 
@@ -49,8 +49,8 @@ Se você quiser executar o workflow manualmente:
 
 Você pode verificar o status da execução do workflow na aba "Actions" do seu repositório no GitHub.
 
-Após a conclusão bem-sucedida, a imagem estará disponível no Docker Hub em:
-`fatec@fatec.info/appraizes:latest`
+Após a conclusão bem-sucedida, a imagem estará disponível no Docker Hub com o nome do seu usuário, por exemplo:
+`seu-usuario/appraizes:latest`
 
 ## Usando a Imagem no Portainer
 
@@ -62,7 +62,7 @@ version: '3.8'
 services:
   # Serviço para a aplicação (API + Frontend)
   app:
-    image: fatec@fatec.info/appraizes:latest
+    image: seu-usuario/appraizes:latest
     container_name: appraizes-app
     restart: always
     environment:
