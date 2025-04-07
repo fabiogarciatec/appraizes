@@ -347,20 +347,38 @@ export default function EquipmentManagement() {
   };
 
   // Funções auxiliares para obter informações relacionadas
-  const getModelName = (modelId) => {
+  const getModelName = (equipment) => {
+    // Se o equipamento já tem o nome do modelo da API
+    if (equipment.model_name) return equipment.model_name;
+    
+    // Caso contrário, busca pelo ID (pode ser modelId ou model_id)
+    const modelId = equipment.modelId || equipment.model_id;
     if (!modelId) return 'Não especificado';
+    
     const model = machineModels.find(model => model.id === modelId);
     return model ? model.name : 'Não especificado';
   };
 
-  const getFamilyName = (familyId) => {
+  const getFamilyName = (equipment) => {
+    // Se o equipamento já tem o nome da família da API
+    if (equipment.family_name) return equipment.family_name;
+    
+    // Caso contrário, busca pelo ID (pode ser familyId ou family_id)
+    const familyId = equipment.familyId || equipment.family_id;
     if (!familyId) return 'Não especificado';
+    
     const family = machineFamilies.find(family => family.id === familyId);
     return family ? family.name : 'Não especificado';
   };
 
-  const getClientName = (clientId) => {
+  const getClientName = (equipment) => {
+    // Se o equipamento já tem o nome do cliente da API
+    if (equipment.client_name) return equipment.client_name;
+    
+    // Caso contrário, busca pelo ID (pode ser clientId ou client_id)
+    const clientId = equipment.clientId || equipment.client_id;
     if (!clientId) return 'Não especificado';
+    
     const client = clients.find(client => client.id === clientId);
     return client ? client.name : 'Não especificado';
   };
@@ -440,18 +458,18 @@ export default function EquipmentManagement() {
                   <TableRow key={equipment.id} hover>
                     <TableCell>{equipment.chassis}</TableCell>
                     <TableCell>{equipment.series}</TableCell>
-                    <TableCell>{getModelName(equipment.modelId)}</TableCell>
+                    <TableCell>{getModelName(equipment)}</TableCell>
                     <TableCell>
                       <Chip 
                         size="small" 
-                        label={getFamilyName(equipment.familyId)}
+                        label={getFamilyName(equipment)}
                         color="primary"
                         variant="outlined"
                       />
                     </TableCell>
                     <TableCell>{equipment.year}</TableCell>
                     <TableCell>{equipment.hourmeter} h</TableCell>
-                    <TableCell>{getClientName(equipment.clientId)}</TableCell>
+                    <TableCell>{getClientName(equipment)}</TableCell>
                     <TableCell align="center">
                       <Tooltip title="Editar equipamento">
                         <IconButton 
