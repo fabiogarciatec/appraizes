@@ -186,8 +186,8 @@ class ApiService {
   // Testar conexão com o banco de dados
   static async testDatabaseConnection() {
     try {
-      // Fazendo a requisição diretamente para a API
-      const response = await fetch('http://localhost:3001/api/database/test');
+      // Fazendo a requisição diretamente para a API usando a URL base
+      const response = await fetch(`${API_BASE_URL}/api/database/test`);
       
       if (!response.ok) {
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
@@ -198,33 +198,33 @@ class ApiService {
       return result;
     } catch (error) {
       console.error('Erro ao testar conexão com o banco de dados:', error);
-      // Retornando um objeto com status negativo para evitar erros na interface
-      return { success: false, message: 'Erro ao conectar com o banco de dados' };
+      // Retornando um objeto com status de erro para evitar quebrar a interface
+      return { success: false, message: error.message };
     }
   }
   
   // Obter estatísticas de conexão com o banco de dados
   static async getDatabaseStats() {
     try {
-      // Fazendo a requisição diretamente para a API
-      const response = await fetch('http://localhost:3001/api/database/stats');
+      // Fazendo a requisição diretamente para a API usando a URL base
+      const response = await fetch(`${API_BASE_URL}/api/database/stats`);
       
       if (!response.ok) {
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
       
-      const stats = await response.json();
-      console.log('Estatísticas de conexão recebidas:', stats);
-      return stats;
+      const result = await response.json();
+      console.log('Estatísticas de conexão recebidas:', result);
+      return result;
     } catch (error) {
-      console.error('Erro ao obter estatísticas de conexão:', error);
-      // Retornando um objeto com valores padrão para evitar erros na interface
+      console.error('Erro ao obter estatísticas do banco de dados:', error);
+      // Retornando um objeto com valores padrão para evitar quebrar a interface
       return { 
-        connections: 0, 
-        activeConnections: 0, 
-        idleConnections: 0,
-        pendingConnections: 0,
-        maxConnections: 10
+        totalUsers: 0, 
+        totalClients: 0, 
+        totalEquipments: 0,
+        totalMachineFamilies: 0,
+        totalMachineModels: 0
       };
     }
   }
@@ -352,8 +352,8 @@ class ApiService {
   // Atualizar um cliente existente
   static async updateClient(id, clientData) {
     try {
-      // Fazendo a requisição diretamente para a API
-      const response = await fetch(`http://localhost:3001/api/clients/${id}`, {
+      // Fazendo a requisição diretamente para a API usando a URL base
+      const response = await fetch(`${API_BASE_URL}/api/clients/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -430,8 +430,8 @@ class ApiService {
   // Atualizar um equipamento existente
   static async updateEquipment(id, equipmentData) {
     try {
-      // Fazendo a requisição diretamente para a API
-      const response = await fetch(`http://localhost:3001/api/equipments/${id}`, {
+      // Fazendo a requisição diretamente para a API usando a URL base
+      const response = await fetch(`${API_BASE_URL}/api/equipments/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

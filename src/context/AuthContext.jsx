@@ -18,8 +18,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      // Autenticação direta via API
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      // Obter a URL base do ApiService
+      const getBaseUrl = () => {
+        if (window.location.hostname !== 'localhost') {
+          return `https://${window.location.hostname}`;
+        }
+        return 'http://localhost:3001';
+      };
+      
+      // Autenticação via API usando a URL base correta
+      const response = await fetch(`${getBaseUrl()}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,6 +40,7 @@ export const AuthProvider = ({ children }) => {
       }
       
       const data = await response.json();
+      console.log('Resposta do login:', data);
       
       if (data.success && data.user) {
         // Usuário autenticado com sucesso
@@ -42,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       return false;
     } catch (error) {
       console.error('Erro durante login:', error);
-      return false;
+      throw error; // Propagar o erro para que o componente Login possa tratá-lo
     }
   };
 

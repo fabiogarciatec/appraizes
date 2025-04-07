@@ -40,7 +40,14 @@ export default function Login() {
         setError('Usuário ou senha inválidos');
       }
     } catch (err) {
-      setError('Erro ao conectar ao servidor. Tente novamente.');
+      // Tratamento de erros mais detalhado
+      if (err.message && err.message.includes('401')) {
+        setError('Usuário ou senha inválidos');
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setError('Servidor indisponível. Verifique sua conexão ou tente novamente mais tarde.');
+      } else {
+        setError('Erro ao conectar ao servidor: ' + (err.message || 'Tente novamente'));
+      }
       console.error('Erro de login:', err);
     } finally {
       setIsLoading(false);
