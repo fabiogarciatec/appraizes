@@ -5,16 +5,13 @@
 // Constantes
 // Determinar a URL base da API dinamicamente
 const getBaseUrl = () => {
-  // Se estiver em produção, use a mesma origem (mesmo domínio e porta)
+  // Se estiver em produção, use a URL baseada no hostname atual
   if (window.location.hostname !== 'localhost') {
-    // Usar a mesma origem que o frontend para a API
-    // Isso garante que funcione em qualquer ambiente de hospedagem, incluindo Docker
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
+    // Usar o mesmo hostname que o frontend, mas com HTTPS
+    const productionApiUrl = `https://${window.location.hostname}`;
     
-    console.log(`Detectado ambiente de produção: ${protocol}//${hostname}${port}`);
-    return `${protocol}//${hostname}${port}`;
+    console.log(`Detectado ambiente de produção: ${productionApiUrl}`);
+    return productionApiUrl;
   }
   
   // Em desenvolvimento, use localhost:3001 (servidor API local)
@@ -30,10 +27,26 @@ console.log(`URL base da API configurada para: ${API_BASE_URL}`);
 class ApiService {
   // Método para construir a URL completa da API
   static getUrl(endpoint) {
-    // Garante que o endpoint comece com /api/
-    if (!endpoint.startsWith('/api/')) {
-      endpoint = `/api${endpoint}`;
+    // Verifica se a URL base já contém /api no final
+    if (API_BASE_URL.endsWith('/api')) {
+      // Remove o prefixo /api do endpoint para evitar duplicação
+      if (endpoint.startsWith('/api/')) {
+        endpoint = endpoint.substring(4); // Remove '/api'
+      } else if (endpoint.startsWith('/api')) {
+        endpoint = endpoint.substring(4); // Remove '/api'
+      }
+      // Garante que o endpoint comece com /
+      if (!endpoint.startsWith('/')) {
+        endpoint = `/${endpoint}`;
+      }
+    } else {
+      // Comportamento normal para localhost
+      // Garante que o endpoint comece com /api/
+      if (!endpoint.startsWith('/api/')) {
+        endpoint = endpoint.startsWith('/') ? `/api${endpoint}` : `/api/${endpoint}`;
+      }
     }
+    
     return `${API_BASE_URL}${endpoint}`;
   }
 
