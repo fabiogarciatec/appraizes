@@ -54,7 +54,7 @@ RUN npm install -g serve
 # Criar script de inicialização
 RUN echo '#!/bin/sh' > /app/start.sh
 RUN echo 'node src/server/newApi.cjs &' >> /app/start.sh
-RUN echo 'serve -s dist -l 5173' >> /app/start.sh
+RUN echo 'serve -s dist -l 5173 --single' >> /app/start.sh
 RUN chmod +x /app/start.sh
 
 # Comando para iniciar a aplicação
