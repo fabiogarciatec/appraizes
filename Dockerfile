@@ -45,9 +45,14 @@ ENV DB_PASSWORD=Fatec555133
 ENV DB_NAME=appraizes_db
 ENV API_PORT=3001
 
-# Copiar um script para iniciar tanto a API quanto servir os arquivos estáticos
-RUN echo '#!/bin/sh\nnode src/server/newApi.cjs &\nnpx serve -s dist -l 5173\n' > /app/start.sh
+# Instalar o serve para servir arquivos estáticos
+RUN npm install -g serve
+
+# Criar script de inicialização
+RUN echo '#!/bin/sh' > /app/start.sh
+RUN echo 'node src/server/newApi.cjs &' >> /app/start.sh
+RUN echo 'serve -s dist -l 5173' >> /app/start.sh
 RUN chmod +x /app/start.sh
 
 # Comando para iniciar a aplicação
-CMD ["/app/start.sh"]
+CMD ["/bin/sh", "/app/start.sh"]
