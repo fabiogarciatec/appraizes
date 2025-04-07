@@ -35,7 +35,7 @@ export default function Login() {
     try {
       const success = await login(username, password);
       if (success) {
-        navigate('/');
+        navigate('/dashboard');
       } else {
         setError('Usuário ou senha inválidos');
       }

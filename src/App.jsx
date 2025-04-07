@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" />
+    return <Navigate to="/login" replace />
   }
   
   return children
@@ -91,8 +91,10 @@ function App() {
         <DatabaseProvider>
           <Router>
             <Routes>
+            {/* Redirecionar a rota raiz para login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
