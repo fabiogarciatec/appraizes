@@ -3,7 +3,17 @@
 // Este arquivo centraliza todas as chamadas à API
 
 // Constantes
-const API_BASE_URL = 'http://localhost:3001/api';
+// Determinar a URL base da API dinamicamente
+const getBaseUrl = () => {
+  // Se estiver em produção, use o domínio atual
+  if (window.location.hostname !== 'localhost') {
+    return `https://${window.location.hostname}/api`;
+  }
+  // Em desenvolvimento, use localhost
+  return 'http://localhost:3001/api';
+};
+
+const API_BASE_URL = getBaseUrl();
 
 // Classe ApiService para gerenciar todas as chamadas à API
 class ApiService {
