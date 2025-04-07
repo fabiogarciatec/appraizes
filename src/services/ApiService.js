@@ -183,17 +183,10 @@ class ApiService {
 
   // ===== MÉTODOS ESPECÍFICOS DE BANCO DE DADOS =====
   
-  // Testar conexão com o banco de dados
+  // Método para testar a conexão com o banco de dados
   static async testDatabaseConnection() {
     try {
-      // Fazendo a requisição diretamente para a API usando a URL base
-      const response = await fetch(`${API_BASE_URL}/api/database/test`);
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
+      const result = await this.get('/database/test');
       console.log('Resultado do teste de conexão:', result);
       return result;
     } catch (error) {
@@ -206,21 +199,19 @@ class ApiService {
   // Obter estatísticas de conexão com o banco de dados
   static async getDatabaseStats() {
     try {
-      // Fazendo a requisição diretamente para a API usando a URL base
-      const response = await fetch(`${API_BASE_URL}/api/database/stats`);
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      console.log('Estatísticas de conexão recebidas:', result);
-      return result;
+      const stats = await this.get('/database/stats');
+      console.log('Estatísticas do banco de dados:', stats);
+      return stats;
     } catch (error) {
       console.error('Erro ao obter estatísticas do banco de dados:', error);
-      // Retornando um objeto com valores padrão para evitar quebrar a interface
-      return { 
-        totalUsers: 0, 
+      // Retornando um objeto vazio para evitar quebrar a interface
+      return {
+        totalQueries: 0,
+        successfulQueries: 0,
+        failedQueries: 0,
+        lastQueryTime: 0,
+        averageQueryTime: 0,
+        totalUsers: 0,
         totalClients: 0, 
         totalEquipments: 0,
         totalMachineFamilies: 0,

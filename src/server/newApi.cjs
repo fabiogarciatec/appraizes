@@ -118,14 +118,14 @@ app.get('/api/status', (req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
-    databaseConnection: 'connected'
+    uptime: process.uptime()
   });
 });
 
 // Rota para testar a conexão com o banco de dados
 app.get('/api/database/test', async (req, res) => {
   try {
-    // Testa a conexão com uma consulta simples
+    // Executa uma consulta simples para testar a conexão
     const testResult = await executeQuery('SELECT 1 as test');
     
     // Verifica os bancos de dados disponíveis
@@ -147,8 +147,10 @@ app.get('/api/database/test', async (req, res) => {
     // Retorna informações detalhadas
     res.json({
       success: true,
-      message: `Conexão com o banco de dados '${process.env.DB_NAME}' estabelecida com sucesso`,
+      message: 'Conexão com o banco de dados estabelecida com sucesso',
+      timestamp: new Date().toISOString(),
       database: process.env.DB_NAME,
+      databases: databaseList,
       tables: tableList,
       stats: connectionStats
     });
@@ -787,6 +789,58 @@ async function createClientsTableIfNotExists() {
     console.error('Erro ao criar tabela de clientes:', error);
   }
 }
+
+// Rota para obter estatísticas do banco de dados
+app.get('/api/database/stats', async (req, res) => {
+  try {
+    // Obter contagens das tabelas principais
+    const userCountResult = await executeQuery('SELECT COUNT(*) as count FROM users WHERE active = TRUE');
+    const clientCountResult = await executeQuery('SELECT COUNT(*) as count FROM clients WHERE active = TRUE');
+    const equipmentCountResult = await executeQuery('SELECT COUNT(*) as count FROM equipments');
+    const familyCountResult = await executeQuery('SELECT COUNT(*) as count FROM machine_families');
+    const modelCountResult = await executeQuery('SELECT COUNT(*) as count FROM machine_models');
+    
+    const userCount = userCountResult[0]?.count || 0;
+    const clientCount = clientCountResult[0]?.count || 0;
+    const equipmentCount = equipmentCountResult[0]?.count || 0;
+    const familyCount = familyCountResult[0]?.count || 0;
+    const modelCount = modelCountResult[0]?.count || 0;
+    
+    res.json({
+      // Estatísticas de consultas
+      totalQueries: connectionStats.totalQueries,
+      successfulQueries: connectionStats.successfulQueries,
+      failedQueries: connectionStats.failedQueries,
+      
+      // Tempos de resposta
+      lastQueryTime: connectionStats.lastQueryTime,
+      averageQueryTime: connectionStats.averageQueryTime,
+      
+      // Último erro (se houver)
+      lastError: connectionStats.lastError,
+      
+      // Contagens de registros
+      totalUsers: userCount,
+      totalClients: clientCount,
+      totalEquipments: equipmentCount,
+      totalMachineFamilies: familyCount,
+      totalMachineModels: modelCount
+    });
+  } catch (error) {
+    console.error('Erro ao obter estatísticas do banco de dados:', error);
+    res.status(500).json({
+      success: false,
+      message: `Erro ao obter estatísticas: ${error.message}`,
+      // Retorna as estatísticas de consultas mesmo em caso de erro
+      totalQueries: connectionStats.totalQueries,
+      successfulQueries: connectionStats.successfulQueries,
+      failedQueries: connectionStats.failedQueries,
+      lastQueryTime: connectionStats.lastQueryTime,
+      averageQueryTime: connectionStats.averageQueryTime,
+      lastError: error.message
+    });
+  }
+});
 
 // Rota para inicializar a tabela de clientes
 app.get('/api/database/init/clients', async (req, res) => {

@@ -32,7 +32,8 @@ import {
   Business as BusinessIcon,
   Construction as ConstructionIcon,
   Build as BuildIcon,
-  LocalGasStation as GasStationIcon
+  LocalGasStation as GasStationIcon,
+  Settings as SettingsIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 
@@ -104,6 +105,7 @@ export default function Layout() {
     { text: 'Peças', icon: <BuildIcon />, path: '/pecas' },
     { text: 'Dicionário de Peças', icon: <BookIcon />, path: '/dicionario' },
     { text: 'Gerenciar Usuários', icon: <ManageAccountsIcon />, path: '/usuarios' },
+    { text: 'Configurações', icon: <SettingsIcon />, path: '/configuracoes' },
   ];
   
   // Itens de menu apenas para administradores (reservado para futuras opções exclusivas)

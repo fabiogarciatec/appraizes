@@ -23,6 +23,7 @@ import ClientManagement from './pages/ClientManagement'
 import EquipmentManagement from './pages/EquipmentManagement'
 import PartManagement from './pages/PartManagement'
 import FuelManagement from './pages/FuelManagement'
+import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 
 // Estilos globais
@@ -109,6 +110,7 @@ function App() {
               <Route path="abastecimentos" element={<FuelManagement />} />
               <Route path="pecas" element={<PartManagement />} />
               <Route path="usuarios" element={<UserManagement />} />
+              <Route path="configuracoes" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Route>
             </Routes>

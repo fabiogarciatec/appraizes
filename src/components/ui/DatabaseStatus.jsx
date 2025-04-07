@@ -25,7 +25,8 @@ import {
   Storage as StorageIcon,
   Speed as SpeedIcon,
   QueryStats as QueryStatsIcon,
-  DataUsage as DataUsageIcon
+  DataUsage as DataUsageIcon,
+  Sync as SyncIcon
 } from '@mui/icons-material';
 import ApiService from '../../services/ApiService';
 
@@ -42,33 +43,42 @@ export default function DatabaseStatus() {
     connectionStats: null
   });
 
-  // Efeito para verificar o status da conexão com o banco de dados quando o componente é montado
+  // Função para verificar o status da conexão com o banco de dados
+  const checkDatabaseStatus = async () => {
+    try {
+      setConnectionStatus(prev => ({ ...prev, isLoading: true }));
+      
+      // Obter estatísticas de conexão
+      const stats = await ApiService.getDatabaseStats();
+      
+      setConnectionStatus({
+        isInitialized: true,
+        isLoading: false,
+        error: null,
+        connectionStats: stats
+      });
+    } catch (error) {
+      console.error('Erro ao verificar status do banco de dados:', error);
+      setConnectionStatus({
+        isInitialized: false,
+        isLoading: false,
+        error: error.message || 'Erro ao conectar ao banco de dados',
+        connectionStats: null
+      });
+    }
+  };
+  
+  // Atualiza as estatísticas quando o componente é montado
   useEffect(() => {
-    const checkDatabaseStatus = async () => {
-      try {
-        setConnectionStatus(prev => ({ ...prev, isLoading: true }));
-        
-        // Obter estatísticas de conexão
-        const stats = await ApiService.getDatabaseStats();
-        
-        setConnectionStatus({
-          isInitialized: true,
-          isLoading: false,
-          error: null,
-          connectionStats: stats
-        });
-      } catch (error) {
-        console.error('Erro ao verificar status do banco de dados:', error);
-        setConnectionStatus({
-          isInitialized: false,
-          isLoading: false,
-          error: error.message || 'Erro ao conectar ao banco de dados',
-          connectionStats: null
-        });
-      }
-    };
-    
     checkDatabaseStatus();
+    
+    // Configura um intervalo para atualizar as estatísticas a cada 30 segundos
+    const intervalId = setInterval(() => {
+      checkDatabaseStatus();
+    }, 30000); // 30 segundos
+    
+    // Limpa o intervalo quando o componente é desmontado
+    return () => clearInterval(intervalId);
   }, []);
 
   // Função para testar a conexão com o banco de dados
@@ -81,32 +91,23 @@ export default function DatabaseStatus() {
       // Testar conexão via API
       const result = await ApiService.testDatabaseConnection();
       
-      // Atualizar estatísticas de conexão
-      const stats = await ApiService.getDatabaseStats();
-      setConnectionStatus(prev => ({
-        ...prev,
-        connectionStats: stats,
-        isInitialized: true,
-        error: null
-      }));
+      setTestResult(result);
+      setTestError(null);
       
-      setTestResult({
-        success: result.success,
-        message: result.message,
-        timestamp: new Date().toISOString(),
-        stats: result.stats,
-        tables: result.tables
-      });
-    } catch (err) {
-      setTestError(err.message || 'Erro desconhecido ao testar conexão');
-      setTestResult({
-        success: false,
-        message: 'Falha ao testar conexão com o banco de dados',
-        timestamp: new Date().toISOString()
-      });
+      // Atualiza as estatísticas após o teste
+      checkDatabaseStatus();
+    } catch (error) {
+      console.error('Erro ao testar conexão:', error);
+      setTestError(error.message || 'Erro ao testar conexão');
+      setTestResult(null);
     } finally {
       setIsTesting(false);
     }
+  };
+
+  // Função para atualizar manualmente as estatísticas
+  const handleRefreshStats = async () => {
+    await checkDatabaseStatus();
   };
 
   // Formata o tempo em milissegundos para uma string legível
@@ -177,8 +178,14 @@ export default function DatabaseStatus() {
             <QueryStatsIcon color="primary" />
           </ListItemIcon>
           <ListItemText 
-            primary="Consultas" 
-            secondary={`Total: ${connectionStats.totalQueries || 0} | Sucesso: ${connectionStats.successfulQueries || 0} | Falhas: ${connectionStats.failedQueries || 0}`} 
+            primary={<Typography variant="subtitle2" fontWeight="medium">Consultas</Typography>} 
+            secondary={
+              <Typography variant="body2">
+                Total: <strong>{connectionStats.totalQueries || 0}</strong> | 
+                Sucesso: <strong>{connectionStats.successfulQueries || 0}</strong> | 
+                Falhas: <strong>{connectionStats.failedQueries || 0}</strong>
+              </Typography>
+            } 
           />
         </ListItem>
         
@@ -187,8 +194,13 @@ export default function DatabaseStatus() {
             <SpeedIcon color="primary" />
           </ListItemIcon>
           <ListItemText 
-            primary="Tempo de Resposta" 
-            secondary={`Média: ${formatTime(connectionStats.averageQueryTime || 0)} | Última: ${formatTime(connectionStats.lastQueryTime || 0)}`} 
+            primary={<Typography variant="subtitle2" fontWeight="medium">Tempo de Resposta</Typography>} 
+            secondary={
+              <Typography variant="body2">
+                Média: <strong>{formatTime(connectionStats.averageQueryTime || 0)}</strong> | 
+                Última: <strong>{formatTime(connectionStats.lastQueryTime || 0)}</strong>
+              </Typography>
+            } 
           />
         </ListItem>
         
@@ -197,10 +209,13 @@ export default function DatabaseStatus() {
             <DataUsageIcon color="primary" />
           </ListItemIcon>
           <ListItemText 
-            primary="Erros de Conexão" 
-            secondary={(connectionStats.connectionErrors || 0) > 0 
-              ? `Total: ${connectionStats.connectionErrors} | Último: ${connectionStats.lastError} (${connectionStats.lastErrorTime ? new Date(connectionStats.lastErrorTime).toLocaleString() : 'N/A'})` 
-              : 'Nenhum erro registrado'
+            primary={<Typography variant="subtitle2" fontWeight="medium">Erros de Conexão</Typography>} 
+            secondary={
+              <Typography variant="body2">
+                {(connectionStats.connectionErrors || 0) > 0 
+                  ? `${connectionStats.connectionErrors} erros detectados` 
+                  : 'Nenhum erro registrado'}
+              </Typography>
             } 
           />
         </ListItem>
@@ -235,12 +250,31 @@ export default function DatabaseStatus() {
           <Typography variant="h6">Status do Banco de Dados</Typography>
         </Box>
         
+        {connectionStatus.isLoading && (
+          <CircularProgress size={20} thickness={5} />
+        )}
+      </Box>
+      
+      <Divider sx={{ mb: 2 }} />
+      
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Button
           variant="outlined"
+          color="info"
           size="small"
-          startIcon={isTesting ? <CircularProgress size={16} /> : <RefreshIcon />}
+          onClick={handleRefreshStats}
+          disabled={connectionStatus.isLoading}
+          startIcon={<RefreshIcon />}
+        >
+          {connectionStatus.isLoading ? 'Atualizando...' : 'Atualizar Estatísticas'}
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          size="small"
           onClick={handleTestConnection}
           disabled={isTesting || connectionStatus.isLoading}
+          startIcon={<SyncIcon />}
         >
           {isTesting ? 'Testando...' : 'Testar Conexão'}
         </Button>
@@ -253,8 +287,9 @@ export default function DatabaseStatus() {
         
         {connectionStatus.isInitialized && (
           <>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 2 }}>
-              Estatísticas de Conexão
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 1 }}>
+              Estatísticas de Consultas
             </Typography>
             {renderConnectionStats()}
           </>
