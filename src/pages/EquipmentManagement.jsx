@@ -137,7 +137,6 @@ const useEquipmentStore = () => {
     try {
       const response = await ApiService.updateEquipment(id, equipmentData);
       await fetchEquipments(); // Atualiza a lista de equipamentos
-      return response.equipment;
     } catch (err) {
       console.error(`Erro ao atualizar equipamento ${id}:`, err);
       throw err;
@@ -236,8 +235,15 @@ export default function EquipmentManagement() {
 
   const handleOpenEditDialog = (equipment) => {
     setDialogMode('edit');
+    // Garantir que todos os campos estejam presentes e com valores válidos
     setFormData({
-      ...equipment
+      chassis: equipment.chassis || '',
+      series: equipment.series || '',
+      modelId: equipment.modelId || equipment.model_id || '',
+      familyId: equipment.familyId || equipment.family_id || '',
+      year: equipment.year || new Date().getFullYear(),
+      hourmeter: equipment.hourmeter || 0,
+      clientId: equipment.clientId || equipment.client_id || ''
     });
     setSelectedEquipment(equipment);
     setOpenDialog(true);
@@ -252,11 +258,17 @@ export default function EquipmentManagement() {
     const { name, value } = e.target;
     
     // Conversão para número quando apropriado
-    const parsedValue = name === 'year' || name === 'hourmeter' || 
-                         name === 'modelId' || name === 'familyId' || 
-                         name === 'clientId' 
-                       ? parseInt(value, 10) || '' 
-                       : value;
+    let parsedValue;
+    if (name === 'year' || name === 'hourmeter') {
+      // Para campos numéricos, converter para número ou usar 0
+      parsedValue = value === '' ? 0 : parseInt(value, 10) || 0;
+    } else if (name === 'modelId' || name === 'familyId' || name === 'clientId') {
+      // Para IDs, manter como string vazia se não houver valor
+      parsedValue = value === '' ? '' : value;
+    } else {
+      // Para campos de texto, usar o valor como está
+      parsedValue = value;
+    }
     
     // Se o campo for familyId, resetamos o modelId para evitar inconsistências
     if (name === 'familyId') {
@@ -348,6 +360,9 @@ export default function EquipmentManagement() {
 
   // Funções auxiliares para obter informações relacionadas
   const getModelName = (equipment) => {
+    // Verifica se o equipamento existe
+    if (!equipment) return 'Não especificado';
+    
     // Se o equipamento já tem o nome do modelo da API
     if (equipment.model_name) return equipment.model_name;
     
@@ -630,7 +645,7 @@ export default function EquipmentManagement() {
         <DialogContent>
           <DialogContentText>
             Tem certeza que deseja excluir o equipamento "{equipmentToDelete?.chassis}" 
-            ({getModelName(equipmentToDelete?.modelId)})?
+            ({getModelName(equipmentToDelete)})?
             Esta ação não pode ser desfeita.
           </DialogContentText>
         </DialogContent>

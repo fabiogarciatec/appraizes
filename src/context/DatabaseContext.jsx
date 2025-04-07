@@ -32,14 +32,26 @@ export const DatabaseProvider = ({ children }) => {
         setIsLoading(true);
         setError(null);
         
-        // Verifica o status da API
-        const apiStatus = await ApiService.get('/status');
+        // Verifica o status da API diretamente
+        const response = await fetch('http://localhost:3001/api/status');
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        const apiStatus = await response.json();
         
         if (apiStatus.databaseConnection === 'connected') {
           setIsInitialized(true);
           
-          // Obtém estatísticas da conexão
-          const stats = await ApiService.getDatabaseStats();
+          // Obtém estatísticas da conexão diretamente
+          const statsResponse = await fetch('http://localhost:3001/api/database/stats');
+          
+          if (!statsResponse.ok) {
+            throw new Error(`Erro ${statsResponse.status}: ${statsResponse.statusText}`);
+          }
+          
+          const stats = await statsResponse.json();
           setConnectionStats(stats);
           
           console.log('API conectada ao banco de dados com sucesso');

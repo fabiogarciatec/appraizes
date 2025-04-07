@@ -18,13 +18,25 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      // Autenticação via API
-      const user = await ApiService.login(username, password);
+      // Autenticação direta via API
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
       
-      if (user) {
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.user) {
         // Usuário autenticado com sucesso
-        setCurrentUser(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        setCurrentUser(data.user);
+        localStorage.setItem('currentUser', JSON.stringify(data.user));
         return true;
       }
       return false;
