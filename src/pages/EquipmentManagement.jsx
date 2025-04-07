@@ -24,7 +24,8 @@ import {
   Snackbar,
   Alert,
   Tooltip,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -38,70 +39,136 @@ import {
   Numbers as NumbersIcon,
   Tag as TagIcon
 } from '@mui/icons-material';
-import { 
-  equipments as mockEquipments, 
-  machineModels, 
-  machineFamilies, 
-  clients 
-} from '../data/mockData';
+import ApiService from '../services/ApiService';
 
 // Store para gerenciar o estado dos equipamentos
 const useEquipmentStore = () => {
   const [equipments, setEquipments] = useState([]);
+  const [machineModels, setMachineModels] = useState([]);
+  const [machineFamilies, setMachineFamilies] = useState([]);
+  const [clients, setClients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Inicializa os equipamentos a partir do localStorage ou dos dados mockados
-  const initializeEquipments = () => {
+  // Busca os equipamentos da API
+  const fetchEquipments = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const storedEquipments = localStorage.getItem('appraizes_equipments');
-      if (storedEquipments) {
-        setEquipments(JSON.parse(storedEquipments));
-      } else {
-        // Se não houver equipamentos no localStorage, usa os mockados
-        setEquipments(mockEquipments);
-        localStorage.setItem('appraizes_equipments', JSON.stringify(mockEquipments));
-      }
+      const data = await ApiService.getAllEquipments();
+      setEquipments(data);
     } catch (err) {
+      console.error('Erro ao buscar equipamentos:', err);
       setError('Erro ao carregar equipamentos: ' + err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Busca os modelos de máquinas da API
+  const fetchMachineModels = async () => {
+    try {
+      const data = await ApiService.getAllMachineModels();
+      setMachineModels(data);
+    } catch (err) {
+      console.error('Erro ao buscar modelos de máquinas:', err);
+    }
+  };
+
+  // Busca as famílias de máquinas da API
+  const fetchMachineFamilies = async () => {
+    try {
+      const data = await ApiService.getAllMachineFamilies();
+      setMachineFamilies(data);
+    } catch (err) {
+      console.error('Erro ao buscar famílias de máquinas:', err);
+    }
+  };
+
+  // Busca os clientes da API
+  const fetchClients = async () => {
+    try {
+      const data = await ApiService.getAllClients();
+      setClients(data);
+    } catch (err) {
+      console.error('Erro ao buscar clientes:', err);
+    }
+  };
+
+  // Inicializa os dados necessários
+  const initializeEquipments = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Busca todos os dados necessários em paralelo
+      await Promise.all([
+        fetchEquipments(),
+        fetchMachineModels(),
+        fetchMachineFamilies(),
+        fetchClients()
+      ]);
+    } catch (err) {
+      console.error('Erro ao inicializar dados:', err);
+      setError('Erro ao inicializar dados: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Adiciona um novo equipamento
-  const addEquipment = (equipment) => {
-    const newEquipment = {
-      ...equipment,
-      id: equipments.length > 0 ? Math.max(...equipments.map(e => e.id)) + 1 : 1
-    };
-    const updatedEquipments = [...equipments, newEquipment];
-    setEquipments(updatedEquipments);
-    localStorage.setItem('appraizes_equipments', JSON.stringify(updatedEquipments));
-    return newEquipment;
+  const addEquipment = async (equipmentData) => {
+    setIsSubmitting(true);
+    try {
+      const response = await ApiService.createEquipment(equipmentData);
+      await fetchEquipments(); // Atualiza a lista de equipamentos
+      return response.equipment;
+    } catch (err) {
+      console.error('Erro ao adicionar equipamento:', err);
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Atualiza um equipamento existente
-  const updateEquipment = (updatedEquipment) => {
-    const updatedEquipments = equipments.map(equipment => 
-      equipment.id === updatedEquipment.id ? updatedEquipment : equipment
-    );
-    setEquipments(updatedEquipments);
-    localStorage.setItem('appraizes_equipments', JSON.stringify(updatedEquipments));
+  const updateEquipment = async (id, equipmentData) => {
+    setIsSubmitting(true);
+    try {
+      const response = await ApiService.updateEquipment(id, equipmentData);
+      await fetchEquipments(); // Atualiza a lista de equipamentos
+      return response.equipment;
+    } catch (err) {
+      console.error(`Erro ao atualizar equipamento ${id}:`, err);
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Remove um equipamento
-  const deleteEquipment = (equipmentId) => {
-    const updatedEquipments = equipments.filter(equipment => equipment.id !== equipmentId);
-    setEquipments(updatedEquipments);
-    localStorage.setItem('appraizes_equipments', JSON.stringify(updatedEquipments));
+  const deleteEquipment = async (id) => {
+    setIsSubmitting(true);
+    try {
+      await ApiService.deleteEquipment(id);
+      await fetchEquipments(); // Atualiza a lista de equipamentos
+    } catch (err) {
+      console.error(`Erro ao excluir equipamento ${id}:`, err);
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {
     equipments,
+    machineModels,
+    machineFamilies,
+    clients,
     isLoading,
+    isSubmitting,
     error,
+    fetchEquipments,
     initializeEquipments,
     addEquipment,
     updateEquipment,
@@ -114,7 +181,11 @@ export default function EquipmentManagement() {
   // Estado do store de equipamentos
   const {
     equipments,
+    machineModels,
+    machineFamilies,
+    clients,
     isLoading,
+    isSubmitting,
     error,
     initializeEquipments,
     addEquipment,
@@ -202,7 +273,7 @@ export default function EquipmentManagement() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       // Validação básica
       if (!formData.chassis || !formData.modelId || !formData.familyId || !formData.clientId) {
@@ -211,7 +282,7 @@ export default function EquipmentManagement() {
 
       if (dialogMode === 'add') {
         // Adiciona o novo equipamento
-        addEquipment(formData);
+        await addEquipment(formData);
         setSnackbar({
           open: true,
           message: 'Equipamento adicionado com sucesso!',
@@ -219,11 +290,7 @@ export default function EquipmentManagement() {
         });
       } else {
         // Atualiza o equipamento existente
-        const updatedEquipment = {
-          ...selectedEquipment,
-          ...formData
-        };
-        updateEquipment(updatedEquipment);
+        await updateEquipment(selectedEquipment.id, formData);
         setSnackbar({
           open: true,
           message: 'Equipamento atualizado com sucesso!',
@@ -235,7 +302,7 @@ export default function EquipmentManagement() {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err.message,
+        message: err.message || 'Ocorreu um erro ao processar a operação',
         severity: 'error'
       });
     }
@@ -251,11 +318,11 @@ export default function EquipmentManagement() {
     setEquipmentToDelete(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     try {
       if (!equipmentToDelete) return;
       
-      deleteEquipment(equipmentToDelete.id);
+      await deleteEquipment(equipmentToDelete.id);
       setSnackbar({
         open: true,
         message: 'Equipamento excluído com sucesso!',
@@ -265,7 +332,7 @@ export default function EquipmentManagement() {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err.message,
+        message: err.message || 'Ocorreu um erro ao excluir o equipamento',
         severity: 'error'
       });
       handleCloseDeleteDialog();
@@ -281,18 +348,31 @@ export default function EquipmentManagement() {
 
   // Funções auxiliares para obter informações relacionadas
   const getModelName = (modelId) => {
+    if (!modelId) return 'Não especificado';
     const model = machineModels.find(model => model.id === modelId);
     return model ? model.name : 'Não especificado';
   };
 
   const getFamilyName = (familyId) => {
+    if (!familyId) return 'Não especificado';
     const family = machineFamilies.find(family => family.id === familyId);
-    return family ? family.name : 'Não especificada';
+    return family ? family.name : 'Não especificado';
   };
 
   const getClientName = (clientId) => {
+    if (!clientId) return 'Não especificado';
     const client = clients.find(client => client.id === clientId);
     return client ? client.name : 'Não especificado';
+  };
+
+  // Filtra os modelos com base na família selecionada
+  const getFilteredModels = () => {
+    if (!formData.familyId) return machineModels;
+    return machineModels.filter(model => {
+      // Verifica se o modelo tem family_id ou familyId
+      const modelFamilyId = model.family_id !== undefined ? model.family_id : model.familyId;
+      return modelFamilyId === formData.familyId;
+    });
   };
 
   // Renderização condicional durante o carregamento
@@ -313,10 +393,8 @@ export default function EquipmentManagement() {
     );
   }
 
-  // Filtra os modelos com base na família selecionada
-  const filteredModels = formData.familyId 
-    ? machineModels.filter(model => model.familyId === formData.familyId)
-    : [];
+  // Usando a função getFilteredModels já definida anteriormente
+  const filteredModels = formData.familyId ? getFilteredModels() : [];
 
   return (
     <Box sx={{ p: 3 }}>
@@ -513,8 +591,13 @@ export default function EquipmentManagement() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">
+          <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancelar</Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained" 
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+          >
             {dialogMode === 'add' ? 'Adicionar' : 'Salvar'}
           </Button>
         </DialogActions>
@@ -534,8 +617,14 @@ export default function EquipmentManagement() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancelar</Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+          <Button onClick={handleCloseDeleteDialog} disabled={isSubmitting}>Cancelar</Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            color="error" 
+            variant="contained"
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+          >
             Excluir
           </Button>
         </DialogActions>

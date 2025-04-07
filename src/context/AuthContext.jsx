@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { users } from '../data/mockData';
+import ApiService from '../services/ApiService';
 
 const AuthContext = createContext(null);
 
@@ -16,20 +16,22 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (username, password) => {
-    // Simulando autenticação com os dados mock
-    const user = users.find(
-      (user) => user.username === username && user.password === password
-    );
-
-    if (user) {
-      // Remover a senha antes de armazenar
-      const { password, ...userWithoutPassword } = user;
-      setCurrentUser(userWithoutPassword);
-      localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-      return true;
+  const login = async (username, password) => {
+    try {
+      // Autenticação via API
+      const user = await ApiService.login(username, password);
+      
+      if (user) {
+        // Usuário autenticado com sucesso
+        setCurrentUser(user);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erro durante login:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {

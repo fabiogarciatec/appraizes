@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 
-// Contexto de autenticação
+// Contextos
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { DatabaseProvider } from './context/DatabaseContext'
 
 // Componentes de layout
 import Layout from './components/layout/Layout'
@@ -21,6 +22,7 @@ import UserManagement from './pages/UserManagement'
 import ClientManagement from './pages/ClientManagement'
 import EquipmentManagement from './pages/EquipmentManagement'
 import PartManagement from './pages/PartManagement'
+import FuelManagement from './pages/FuelManagement'
 import NotFound from './pages/NotFound'
 
 // Estilos globais
@@ -86,8 +88,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <Routes>
+        <DatabaseProvider>
+          <Router>
+            <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={
               <ProtectedRoute>
@@ -102,12 +105,14 @@ function App() {
               <Route path="clientes" element={<ClientManagement />} />
               <Route path="clientes/:id/historico" element={<ClientHistory />} />
               <Route path="equipamentos" element={<EquipmentManagement />} />
+              <Route path="abastecimentos" element={<FuelManagement />} />
               <Route path="pecas" element={<PartManagement />} />
               <Route path="usuarios" element={<UserManagement />} />
               <Route path="*" element={<NotFound />} />
             </Route>
-          </Routes>
-        </Router>
+            </Routes>
+          </Router>
+        </DatabaseProvider>
       </AuthProvider>
     </ThemeProvider>
   )

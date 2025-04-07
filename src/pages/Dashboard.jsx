@@ -30,7 +30,9 @@ import {
 } from '@mui/icons-material';
 import { quoteRequests, clients } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
+import { useDatabase } from '../context/DatabaseContext';
 import StyledCard from '../components/ui/StyledCard';
+import DatabaseStatus from '../components/ui/DatabaseStatus';
 
 // Componente de card para estatísticas
 const StatCard = ({ title, value, icon, color }) => (
@@ -131,6 +133,7 @@ export default function Dashboard() {
   });
   const [recentRequests, setRecentRequests] = useState([]);
   const { currentUser } = useAuth();
+  const { isInitialized: dbInitialized } = useDatabase();
   const navigate = useNavigate();
   
   // Função para obter o nome do cliente pelo ID
@@ -234,6 +237,11 @@ export default function Dashboard() {
             sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
           />
         </Box>
+      </Box>
+      
+      {/* Status do Banco de Dados */}
+      <Box sx={{ mt: 2, width: '100%' }}>
+        <DatabaseStatus />
       </Box>
       
       {/* Ações Rápidas e Solicitações Recentes lado a lado */}

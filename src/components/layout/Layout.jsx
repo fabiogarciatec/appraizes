@@ -31,7 +31,8 @@ import {
   ManageAccounts as ManageAccountsIcon,
   Business as BusinessIcon,
   Construction as ConstructionIcon,
-  Build as BuildIcon
+  Build as BuildIcon,
+  LocalGasStation as GasStationIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 
@@ -99,6 +100,7 @@ export default function Layout() {
     { text: 'Nova Solicitação', icon: <AddIcon />, path: '/solicitacoes/nova' },
     { text: 'Clientes', icon: <BusinessIcon />, path: '/clientes' },
     { text: 'Equipamentos', icon: <ConstructionIcon />, path: '/equipamentos' },
+    { text: 'Abastecimentos', icon: <GasStationIcon />, path: '/abastecimentos' },
     { text: 'Peças', icon: <BuildIcon />, path: '/pecas' },
     { text: 'Dicionário de Peças', icon: <BookIcon />, path: '/dicionario' },
     { text: 'Gerenciar Usuários', icon: <ManageAccountsIcon />, path: '/usuarios' },

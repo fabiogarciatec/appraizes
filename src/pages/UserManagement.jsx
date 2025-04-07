@@ -23,67 +23,109 @@ import {
   MenuItem,
   Snackbar,
   Alert,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
-import { users as mockUsers } from '../data/mockData';
+import { useDatabase } from '../context/DatabaseContext';
+import ApiService from '../services/ApiService';
 
 // Store para gerenciar o estado dos usuários
 const useUserStore = () => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { users: dbUserService } = useDatabase();
 
-  // Inicializa os usuários a partir do localStorage ou dos dados mockados
-  const initializeUsers = () => {
+  // Inicializa os usuários a partir da API
+  const initializeUsers = async () => {
     setIsLoading(true);
+    setError(null);
     try {
+      const fetchedUsers = await ApiService.getAllUsers();
+      setUsers(fetchedUsers);
+    } catch (err) {
+      console.error('Erro ao carregar usuários:', err);
+      setError('Erro ao carregar usuários: ' + (err.message || 'Erro desconhecido'));
+      // Fallback para dados locais se a API falhar
       const storedUsers = localStorage.getItem('appraizes_users');
       if (storedUsers) {
         setUsers(JSON.parse(storedUsers));
-      } else {
-        // Se não houver usuários no localStorage, usa os mockados
-        setUsers(mockUsers);
-        localStorage.setItem('appraizes_users', JSON.stringify(mockUsers));
       }
-    } catch (err) {
-      setError('Erro ao carregar usuários: ' + err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Força uma atualização dos dados
+  const refreshUsers = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Efeito para buscar os usuários quando o componente montar ou quando refreshTrigger mudar
+  useEffect(() => {
+    initializeUsers();
+  }, [refreshTrigger]);
+
   // Adiciona um novo usuário
-  const addUser = (user) => {
-    const newUser = {
-      ...user,
-      id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1
-    };
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    localStorage.setItem('appraizes_users', JSON.stringify(updatedUsers));
-    return newUser;
+  const addUser = async (user) => {
+    try {
+      setIsLoading(true);
+      // Chama a API para criar o usuário
+      const newUser = await ApiService.createUser(user);
+      // Atualiza a lista local
+      setUsers(prev => [...prev, newUser]);
+      return newUser;
+    } catch (err) {
+      console.error('Erro ao adicionar usuário:', err);
+      setError('Erro ao adicionar usuário: ' + (err.message || 'Erro desconhecido'));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Atualiza um usuário existente
-  const updateUser = (updatedUser) => {
-    const updatedUsers = users.map(user => 
-      user.id === updatedUser.id ? updatedUser : user
-    );
-    setUsers(updatedUsers);
-    localStorage.setItem('appraizes_users', JSON.stringify(updatedUsers));
+  const updateUser = async (updatedUser) => {
+    try {
+      setIsLoading(true);
+      // Chama a API para atualizar o usuário
+      await ApiService.updateUser(updatedUser.id, updatedUser);
+      // Atualiza a lista local
+      setUsers(prev => prev.map(user => 
+        user.id === updatedUser.id ? updatedUser : user
+      ));
+    } catch (err) {
+      console.error('Erro ao atualizar usuário:', err);
+      setError('Erro ao atualizar usuário: ' + (err.message || 'Erro desconhecido'));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Remove um usuário
-  const deleteUser = (userId) => {
-    const updatedUsers = users.filter(user => user.id !== userId);
-    setUsers(updatedUsers);
-    localStorage.setItem('appraizes_users', JSON.stringify(updatedUsers));
+  const deleteUser = async (userId) => {
+    try {
+      setIsLoading(true);
+      // Chama a API para excluir o usuário
+      await ApiService.deleteUser(userId);
+      // Atualiza a lista local
+      setUsers(prev => prev.filter(user => user.id !== userId));
+    } catch (err) {
+      console.error('Erro ao excluir usuário:', err);
+      setError('Erro ao excluir usuário: ' + (err.message || 'Erro desconhecido'));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return {
@@ -91,6 +133,7 @@ const useUserStore = () => {
     isLoading,
     error,
     initializeUsers,
+    refreshUsers,
     addUser,
     updateUser,
     deleteUser
@@ -105,6 +148,7 @@ export default function UserManagement() {
     isLoading,
     error,
     initializeUsers,
+    refreshUsers,
     addUser,
     updateUser,
     deleteUser
@@ -128,11 +172,6 @@ export default function UserManagement() {
     message: '',
     severity: 'success'
   });
-
-  // Inicializa os usuários ao montar o componente
-  useEffect(() => {
-    initializeUsers();
-  }, []);
 
   // Manipuladores de eventos
   const handleOpenAddDialog = () => {
@@ -172,7 +211,7 @@ export default function UserManagement() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       // Validação básica
       if (!formData.username || !formData.name || !formData.email || 
@@ -187,7 +226,7 @@ export default function UserManagement() {
         }
         
         // Adiciona o novo usuário
-        addUser(formData);
+        await addUser(formData);
         setSnackbar({
           open: true,
           message: 'Usuário adicionado com sucesso!',
@@ -208,7 +247,7 @@ export default function UserManagement() {
           // Mantém a senha antiga se não for fornecida uma nova
           password: formData.password ? formData.password : selectedUser.password
         };
-        updateUser(updatedUser);
+        await updateUser(updatedUser);
         setSnackbar({
           open: true,
           message: 'Usuário atualizado com sucesso!',
@@ -220,7 +259,7 @@ export default function UserManagement() {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err.message,
+        message: err.message || 'Ocorreu um erro ao processar a solicitação',
         severity: 'error'
       });
     }
@@ -236,26 +275,27 @@ export default function UserManagement() {
     setUserToDelete(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     try {
       if (!userToDelete) return;
       
-      // Impede a exclusão do próprio usuário admin (id 3)
-      if (userToDelete.id === 3 && userToDelete.role === 'admin') {
+      // Impede a exclusão do próprio usuário admin (id 1)
+      if (userToDelete.id === 1 && userToDelete.role === 'admin') {
         throw new Error('Não é possível excluir o usuário administrador principal');
       }
       
-      deleteUser(userToDelete.id);
+      await deleteUser(userToDelete.id);
       setSnackbar({
         open: true,
         message: 'Usuário excluído com sucesso!',
         severity: 'success'
       });
+      
       handleCloseDeleteDialog();
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err.message,
+        message: err.message || 'Ocorreu um erro ao excluir o usuário',
         severity: 'error'
       });
       handleCloseDeleteDialog();
@@ -272,8 +312,9 @@ export default function UserManagement() {
   // Renderização condicional durante o carregamento
   if (isLoading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Carregando usuários...</Typography>
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Carregando usuários...</Typography>
       </Box>
     );
   }
@@ -293,13 +334,23 @@ export default function UserManagement() {
         <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
           Gerenciamento de Usuários
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenAddDialog}
-        >
-          Novo Usuário
-        </Button>
+        <Box>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={refreshUsers}
+            sx={{ mr: 1 }}
+          >
+            Atualizar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDialog}
+          >
+            Novo Usuário
+          </Button>
+        </Box>
       </Box>
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -316,38 +367,47 @@ export default function UserManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id} hover>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      icon={<PersonIcon />} 
-                      label={user.role === 'admin' ? 'Administrador' : 'Consultor'} 
-                      color={user.role === 'admin' ? 'primary' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton 
-                      color="primary" 
-                      onClick={() => handleOpenEditDialog(user)}
-                      size="small"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
-                      color="error" 
-                      onClick={() => handleOpenDeleteDialog(user)}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+              {users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    Nenhum usuário encontrado
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id} hover>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        icon={<PersonIcon />} 
+                        label={user.role === 'admin' ? 'Administrador' : 'Consultor'} 
+                        color={user.role === 'admin' ? 'primary' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton 
+                        color="primary" 
+                        onClick={() => handleOpenEditDialog(user)}
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton 
+                        color="error" 
+                        onClick={() => handleOpenDeleteDialog(user)}
+                        size="small"
+                        disabled={user.id === 1 && user.role === 'admin'} // Desabilita o botão para o admin principal
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>

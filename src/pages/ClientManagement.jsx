@@ -19,7 +19,8 @@ import {
   TextField,
   Snackbar,
   Alert,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,9 +29,10 @@ import {
   Business as BusinessIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
-import { clients as mockClients } from '../data/mockData';
+import ApiService from '../services/ApiService';
 
 // Store para gerenciar o estado dos clientes
 const useClientStore = () => {
@@ -38,19 +40,15 @@ const useClientStore = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Inicializa os clientes a partir do localStorage ou dos dados mockados
-  const initializeClients = () => {
+  // Busca os clientes da API
+  const fetchClients = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const storedClients = localStorage.getItem('appraizes_clients');
-      if (storedClients) {
-        setClients(JSON.parse(storedClients));
-      } else {
-        // Se não houver clientes no localStorage, usa os mockados
-        setClients(mockClients);
-        localStorage.setItem('appraizes_clients', JSON.stringify(mockClients));
-      }
+      const clientsData = await ApiService.getAllClients();
+      setClients(clientsData);
     } catch (err) {
+      console.error('Erro ao buscar clientes:', err);
       setError('Erro ao carregar clientes: ' + err.message);
     } finally {
       setIsLoading(false);
@@ -58,38 +56,49 @@ const useClientStore = () => {
   };
 
   // Adiciona um novo cliente
-  const addClient = (client) => {
-    const newClient = {
-      ...client,
-      id: clients.length > 0 ? Math.max(...clients.map(c => c.id)) + 1 : 1
-    };
-    const updatedClients = [...clients, newClient];
-    setClients(updatedClients);
-    localStorage.setItem('appraizes_clients', JSON.stringify(updatedClients));
-    return newClient;
+  const addClient = async (clientData) => {
+    try {
+      const response = await ApiService.createClient(clientData);
+      setClients([...clients, response.client]);
+      return response.client;
+    } catch (err) {
+      console.error('Erro ao adicionar cliente:', err);
+      throw err;
+    }
   };
 
   // Atualiza um cliente existente
-  const updateClient = (updatedClient) => {
-    const updatedClients = clients.map(client => 
-      client.id === updatedClient.id ? updatedClient : client
-    );
-    setClients(updatedClients);
-    localStorage.setItem('appraizes_clients', JSON.stringify(updatedClients));
+  const updateClient = async (id, clientData) => {
+    try {
+      const response = await ApiService.updateClient(id, clientData);
+      const updatedClients = clients.map(client => 
+        client.id === id ? response.client : client
+      );
+      setClients(updatedClients);
+      return response.client;
+    } catch (err) {
+      console.error(`Erro ao atualizar cliente ${id}:`, err);
+      throw err;
+    }
   };
 
   // Remove um cliente
-  const deleteClient = (clientId) => {
-    const updatedClients = clients.filter(client => client.id !== clientId);
-    setClients(updatedClients);
-    localStorage.setItem('appraizes_clients', JSON.stringify(updatedClients));
+  const deleteClient = async (clientId) => {
+    try {
+      await ApiService.deleteClient(clientId);
+      const updatedClients = clients.filter(client => client.id !== clientId);
+      setClients(updatedClients);
+    } catch (err) {
+      console.error(`Erro ao excluir cliente ${clientId}:`, err);
+      throw err;
+    }
   };
 
   return {
     clients,
     isLoading,
     error,
-    initializeClients,
+    fetchClients,
     addClient,
     updateClient,
     deleteClient
@@ -103,7 +112,7 @@ export default function ClientManagement() {
     clients,
     isLoading,
     error,
-    initializeClients,
+    fetchClients,
     addClient,
     updateClient,
     deleteClient
@@ -126,10 +135,11 @@ export default function ClientManagement() {
     message: '',
     severity: 'success'
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Inicializa os clientes ao montar o componente
+  // Busca os clientes ao montar o componente
   useEffect(() => {
-    initializeClients();
+    fetchClients();
   }, []);
 
   // Manipuladores de eventos
@@ -166,8 +176,13 @@ export default function ClientManagement() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleRefresh = () => {
+    fetchClients();
+  };
+
+  const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
       // Validação básica
       if (!formData.name) {
         throw new Error('O nome da empresa é obrigatório');
@@ -175,7 +190,7 @@ export default function ClientManagement() {
 
       if (dialogMode === 'add') {
         // Adiciona o novo cliente
-        addClient(formData);
+        await addClient(formData);
         setSnackbar({
           open: true,
           message: 'Cliente adicionado com sucesso!',
@@ -183,11 +198,7 @@ export default function ClientManagement() {
         });
       } else {
         // Atualiza o cliente existente
-        const updatedClient = {
-          ...selectedClient,
-          ...formData
-        };
-        updateClient(updatedClient);
+        await updateClient(selectedClient.id, formData);
         setSnackbar({
           open: true,
           message: 'Cliente atualizado com sucesso!',
@@ -202,6 +213,8 @@ export default function ClientManagement() {
         message: err.message,
         severity: 'error'
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -215,11 +228,12 @@ export default function ClientManagement() {
     setClientToDelete(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     try {
       if (!clientToDelete) return;
       
-      deleteClient(clientToDelete.id);
+      setIsSubmitting(true);
+      await deleteClient(clientToDelete.id);
       setSnackbar({
         open: true,
         message: 'Cliente excluído com sucesso!',
@@ -233,6 +247,8 @@ export default function ClientManagement() {
         severity: 'error'
       });
       handleCloseDeleteDialog();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -246,8 +262,9 @@ export default function ClientManagement() {
   // Renderização condicional durante o carregamento
   if (isLoading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Carregando clientes...</Typography>
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Carregando clientes...</Typography>
       </Box>
     );
   }
@@ -256,7 +273,16 @@ export default function ClientManagement() {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
+        <Alert 
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={handleRefresh}>
+              Tentar novamente
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
       </Box>
     );
   }
@@ -267,13 +293,24 @@ export default function ClientManagement() {
         <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
           Cadastro de Clientes
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenAddDialog}
-        >
-          Novo Cliente
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            Atualizar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDialog}
+            disabled={isLoading}
+          >
+            Novo Cliente
+          </Button>
+        </Box>
       </Box>
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -386,8 +423,13 @@ export default function ClientManagement() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">
+          <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancelar</Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained" 
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+          >
             {dialogMode === 'add' ? 'Adicionar' : 'Salvar'}
           </Button>
         </DialogActions>
@@ -406,8 +448,14 @@ export default function ClientManagement() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancelar</Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+          <Button onClick={handleCloseDeleteDialog} disabled={isSubmitting}>Cancelar</Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            color="error" 
+            variant="contained"
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+          >
             Excluir
           </Button>
         </DialogActions>

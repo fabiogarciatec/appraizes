@@ -179,6 +179,434 @@ export const popularNames = [
   { id: 10, popularName: 'Bomba do sistema', officialPartId: 5 }
 ];
 
+// Abastecimentos de Diesel
+export const fuelRefills = [
+  // Equipamento 1 - Escavadeira EX200-12345 (Janeiro 2025)
+  {
+    id: 1,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-01-06',
+    liters: 105,
+    hourmeter: 2800,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 2,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-01-13',
+    liters: 110,
+    hourmeter: 2840,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 3,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-01-20',
+    liters: 108,
+    hourmeter: 2880,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 4,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-01-27',
+    liters: 112,
+    hourmeter: 2920,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  
+  // Equipamento 1 - Escavadeira EX200-12345 (Fevereiro 2025)
+  {
+    id: 5,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-02-03',
+    liters: 130,
+    hourmeter: 2960,
+    usedAdgreen: false,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 6,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-02-10',
+    liters: 132,
+    hourmeter: 3000,
+    usedAdgreen: false,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 7,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-02-17',
+    liters: 106,
+    hourmeter: 3040,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 8,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-02-24',
+    liters: 107,
+    hourmeter: 3080,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  
+  // Equipamento 1 - Escavadeira EX200-12345 (Março 2025)
+  {
+    id: 9,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-03-03',
+    liters: 109,
+    hourmeter: 3120,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 10,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-03-10',
+    liters: 105,
+    hourmeter: 3160,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 11,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-03-17',
+    liters: 128,
+    hourmeter: 3200,
+    usedAdgreen: false,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 12,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-03-24',
+    liters: 130,
+    hourmeter: 3240,
+    usedAdgreen: false,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  {
+    id: 13,
+    equipmentSeries: 'EX200-12345',
+    date: '2025-03-31',
+    liters: 104,
+    hourmeter: 3280,
+    usedAdgreen: true,
+    operatorName: 'Carlos Oliveira',
+    operatorPhone: '(11) 98765-4321',
+    equipmentId: 1
+  },
+  
+  // Equipamento 2 - Carregadeira WA320-54321 (Janeiro 2025)
+  {
+    id: 14,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-01-07',
+    liters: 78,
+    hourmeter: 800,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 15,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-01-14',
+    liters: 80,
+    hourmeter: 840,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 16,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-01-21',
+    liters: 76,
+    hourmeter: 880,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 17,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-01-28',
+    liters: 75,
+    hourmeter: 920,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  
+  // Equipamento 2 - Carregadeira WA320-54321 (Fevereiro 2025)
+  {
+    id: 18,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-02-04',
+    liters: 95,
+    hourmeter: 960,
+    usedAdgreen: false,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 19,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-02-11',
+    liters: 97,
+    hourmeter: 1000,
+    usedAdgreen: false,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 20,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-02-18',
+    liters: 98,
+    hourmeter: 1040,
+    usedAdgreen: false,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 21,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-02-25',
+    liters: 77,
+    hourmeter: 1080,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  
+  // Equipamento 2 - Carregadeira WA320-54321 (Março 2025)
+  {
+    id: 22,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-03-04',
+    liters: 79,
+    hourmeter: 1120,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 23,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-03-11',
+    liters: 78,
+    hourmeter: 1160,
+    usedAdgreen: true,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 24,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-03-18',
+    liters: 96,
+    hourmeter: 1200,
+    usedAdgreen: false,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  {
+    id: 25,
+    equipmentSeries: 'WA320-54321',
+    date: '2025-03-25',
+    liters: 95,
+    hourmeter: 1240,
+    usedAdgreen: false,
+    operatorName: 'Marcos Santos',
+    operatorPhone: '(31) 97654-3210',
+    equipmentId: 2
+  },
+  
+  // Equipamento 3 - Trator D6-98765 (Janeiro 2025)
+  {
+    id: 26,
+    equipmentSeries: 'D6-98765',
+    date: '2025-01-08',
+    liters: 165,
+    hourmeter: 2200,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 27,
+    equipmentSeries: 'D6-98765',
+    date: '2025-01-15',
+    liters: 168,
+    hourmeter: 2250,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 28,
+    equipmentSeries: 'D6-98765',
+    date: '2025-01-22',
+    liters: 162,
+    hourmeter: 2300,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 29,
+    equipmentSeries: 'D6-98765',
+    date: '2025-01-29',
+    liters: 170,
+    hourmeter: 2350,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  
+  // Equipamento 3 - Trator D6-98765 (Fevereiro 2025)
+  {
+    id: 30,
+    equipmentSeries: 'D6-98765',
+    date: '2025-02-05',
+    liters: 240,
+    hourmeter: 2400,
+    usedAdgreen: false,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 31,
+    equipmentSeries: 'D6-98765',
+    date: '2025-02-12',
+    liters: 245,
+    hourmeter: 2450,
+    usedAdgreen: false,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 32,
+    equipmentSeries: 'D6-98765',
+    date: '2025-02-19',
+    liters: 238,
+    hourmeter: 2500,
+    usedAdgreen: false,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 33,
+    equipmentSeries: 'D6-98765',
+    date: '2025-02-26',
+    liters: 242,
+    hourmeter: 2550,
+    usedAdgreen: false,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  
+  // Equipamento 3 - Trator D6-98765 (Março 2025)
+  {
+    id: 34,
+    equipmentSeries: 'D6-98765',
+    date: '2025-03-05',
+    liters: 166,
+    hourmeter: 2600,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 35,
+    equipmentSeries: 'D6-98765',
+    date: '2025-03-12',
+    liters: 164,
+    hourmeter: 2650,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 36,
+    equipmentSeries: 'D6-98765',
+    date: '2025-03-19',
+    liters: 168,
+    hourmeter: 2700,
+    usedAdgreen: true,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  },
+  {
+    id: 37,
+    equipmentSeries: 'D6-98765',
+    date: '2025-03-26',
+    liters: 235,
+    hourmeter: 2750,
+    usedAdgreen: false,
+    operatorName: 'Roberto Almeida',
+    operatorPhone: '(21) 96543-2109',
+    equipmentId: 3
+  }
+];
+
 // Quote Requests
 export const quoteRequests = [
   {

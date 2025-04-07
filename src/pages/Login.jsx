@@ -17,23 +17,33 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     if (!username || !password) {
       setError('Por favor, preencha todos os campos');
+      setIsLoading(false);
       return;
     }
 
-    const success = login(username, password);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Usuário ou senha inválidos');
+    try {
+      const success = await login(username, password);
+      if (success) {
+        navigate('/');
+      } else {
+        setError('Usuário ou senha inválidos');
+      }
+    } catch (err) {
+      setError('Erro ao conectar ao servidor. Tente novamente.');
+      console.error('Erro de login:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,8 +108,9 @@ export default function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading}
             >
-              Entrar
+              {isLoading ? 'Conectando...' : 'Entrar'}
             </Button>
             <Typography variant="body2" color="text.secondary" align="center">
               Dica: Use 'consultor1' / 'senha123' para entrar como consultor
