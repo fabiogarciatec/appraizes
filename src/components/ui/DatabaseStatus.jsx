@@ -2,8 +2,8 @@
 // Componente para exibir o status da conexão com o banco de dados
 // Exibe informações sobre a conexão, estatísticas e permite testar a conexão
 
-import React, { useState, useEffect } from 'react';
-import {
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
   Box,
   Paper,
   Typography,
@@ -18,7 +18,7 @@ import {
   ListItemText,
   ListItemIcon
 } from '@mui/material';
-import {
+import { 
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Refresh as RefreshIcon,
@@ -50,13 +50,24 @@ export default function DatabaseStatus() {
       
       // Obter estatísticas de conexão
       const stats = await ApiService.getDatabaseStats();
+      console.log('Estatísticas obtidas:', stats);
       
-      setConnectionStatus({
-        isInitialized: true,
-        isLoading: false,
-        error: null,
-        connectionStats: stats
-      });
+      // Verificar se as estatísticas são válidas
+      if (stats && typeof stats === 'object') {
+        setConnectionStatus({
+          isInitialized: true,
+          isLoading: false,
+          error: null,
+          connectionStats: stats
+        });
+      } else {
+        console.error('Formato inválido de estatísticas:', stats);
+        setConnectionStatus(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Formato inválido de estatísticas'
+        }));
+      }
     } catch (error) {
       console.error('Erro ao verificar status do banco de dados:', error);
       setConnectionStatus({
@@ -107,7 +118,19 @@ export default function DatabaseStatus() {
 
   // Função para atualizar manualmente as estatísticas
   const handleRefreshStats = async () => {
-    await checkDatabaseStatus();
+    try {
+      setConnectionStatus(prev => ({ ...prev, isLoading: true }));
+      console.log('Atualizando estatísticas manualmente...');
+      await checkDatabaseStatus();
+      console.log('Estatísticas atualizadas com sucesso');
+    } catch (error) {
+      console.error('Erro ao atualizar estatísticas manualmente:', error);
+      setConnectionStatus(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Erro ao atualizar estatísticas: ' + (error.message || 'Erro desconhecido')
+      }));
+    }
   };
 
   // Formata o tempo em milissegundos para uma string legível
@@ -171,6 +194,25 @@ export default function DatabaseStatus() {
     const { connectionStats } = connectionStatus;
     if (!connectionStats) return null;
     
+    // Extrair estatísticas do objeto retornado pela API
+    // A API pode retornar as estatísticas diretamente ou dentro de um objeto 'stats'
+    const stats = connectionStats.stats || connectionStats;
+    
+    // Calcular a taxa de sucesso das consultas
+    const totalQueries = stats.totalQueries || 0;
+    const successRate = totalQueries > 0 
+      ? Math.round((stats.successfulQueries / totalQueries) * 100) 
+      : 100;
+    
+    // Determinar a cor do status com base na taxa de sucesso
+    const getStatusColor = (rate) => {
+      if (rate >= 95) return 'success';
+      if (rate >= 80) return 'warning';
+      return 'error';
+    };
+    
+    const statusColor = getStatusColor(successRate);
+    
     return (
       <List dense>
         <ListItem>
@@ -178,12 +220,22 @@ export default function DatabaseStatus() {
             <QueryStatsIcon color="primary" />
           </ListItemIcon>
           <ListItemText 
-            primary={<Typography variant="subtitle2" fontWeight="medium">Consultas</Typography>} 
+            primary={
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Typography variant="subtitle2" fontWeight="medium">Consultas</Typography>
+                <Chip 
+                  size="small" 
+                  color={statusColor} 
+                  label={`${successRate}% sucesso`} 
+                  variant="outlined"
+                />
+              </Box>
+            } 
             secondary={
               <Typography variant="body2">
-                Total: <strong>{connectionStats.totalQueries || 0}</strong> | 
-                Sucesso: <strong>{connectionStats.successfulQueries || 0}</strong> | 
-                Falhas: <strong>{connectionStats.failedQueries || 0}</strong>
+                Total: <strong>{stats.totalQueries || 0}</strong> | 
+                Sucesso: <strong>{stats.successfulQueries || 0}</strong> | 
+                Falhas: <strong>{stats.failedQueries || 0}</strong>
               </Typography>
             } 
           />
@@ -197,8 +249,8 @@ export default function DatabaseStatus() {
             primary={<Typography variant="subtitle2" fontWeight="medium">Tempo de Resposta</Typography>} 
             secondary={
               <Typography variant="body2">
-                Média: <strong>{formatTime(connectionStats.averageQueryTime || 0)}</strong> | 
-                Última: <strong>{formatTime(connectionStats.lastQueryTime || 0)}</strong>
+                Média: <strong>{formatTime(stats.averageQueryTime || 0)}</strong> | 
+                Última: <strong>{formatTime(stats.lastQueryTime || 0)}</strong>
               </Typography>
             } 
           />
@@ -212,13 +264,32 @@ export default function DatabaseStatus() {
             primary={<Typography variant="subtitle2" fontWeight="medium">Erros de Conexão</Typography>} 
             secondary={
               <Typography variant="body2">
-                {(connectionStats.connectionErrors || 0) > 0 
-                  ? `${connectionStats.connectionErrors} erros detectados` 
+                {stats.lastError 
+                  ? <span style={{ color: 'red' }}>Último erro: {stats.lastError}</span> 
                   : 'Nenhum erro registrado'}
               </Typography>
             } 
           />
         </ListItem>
+        
+        {/* Estatísticas do banco de dados */}
+        {(stats.totalUsers !== undefined || stats.totalClients !== undefined) && (
+          <ListItem>
+            <ListItemIcon>
+              <StorageIcon color="primary" />
+            </ListItemIcon>
+            <ListItemText 
+              primary={<Typography variant="subtitle2" fontWeight="medium">Registros no Banco</Typography>} 
+              secondary={
+                <Typography variant="body2">
+                  Usuários: <strong>{stats.totalUsers || 0}</strong> | 
+                  Clientes: <strong>{stats.totalClients || 0}</strong> | 
+                  Equipamentos: <strong>{stats.totalEquipments || 0}</strong>
+                </Typography>
+              } 
+            />
+          </ListItem>
+        )}
       </List>
     );
   };

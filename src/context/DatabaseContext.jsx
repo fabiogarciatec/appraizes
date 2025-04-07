@@ -31,56 +31,65 @@ export const DatabaseProvider = ({ children }) => {
       try {
         setIsLoading(true);
         setError(null);
+        console.log('[DatabaseContext] Verificando status da API...');
         
-        // Verifica o status da API diretamente
-        const response = await fetch('http://localhost:3001/api/status');
+        // Verifica o status da API usando ApiService
+        const apiStatus = await ApiService.get('/api/status');
+        console.log('[DatabaseContext] Status da API:', apiStatus);
         
-        if (!response.ok) {
-          throw new Error(`Erro ${response.status}: ${response.statusText}`);
-        }
-        
-        const apiStatus = await response.json();
-        
-        if (apiStatus.databaseConnection === 'connected') {
+        if (apiStatus && apiStatus.databaseConnection === 'connected') {
           setIsInitialized(true);
-          
-          // Obtém estatísticas da conexão diretamente
-          const statsResponse = await fetch('http://localhost:3001/api/database/stats');
-          
-          if (!statsResponse.ok) {
-            throw new Error(`Erro ${statsResponse.status}: ${statsResponse.statusText}`);
-          }
-          
-          const stats = await statsResponse.json();
+          console.log('[DatabaseContext] API conectada, obtendo estatísticas...');
+          const stats = await ApiService.getDatabaseStats();
+          console.log('[DatabaseContext] Estatísticas obtidas:', stats);
           setConnectionStats(stats);
-          
-          console.log('API conectada ao banco de dados com sucesso');
         } else {
+          console.warn('[DatabaseContext] API não está conectada ao banco de dados');
           setError('API não está conectada ao banco de dados');
         }
       } catch (err) {
-        console.error('Erro ao verificar status da API:', err);
+        console.error('[DatabaseContext] Erro ao verificar status da API:', err);
         setError(err.message || 'Erro ao conectar à API');
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Verificar o status da API ao montar o componente
     checkApiStatus();
+    
+    // Configurar atualização periódica das estatísticas (a cada 30 segundos)
+    const statsInterval = setInterval(() => {
+      console.log('[DatabaseContext] Atualizando estatísticas periodicamente...');
+      refreshConnectionStats();
+    }, 30000); // 30 segundos
+    
+    // Limpar o intervalo quando o componente for desmontado
+    return () => clearInterval(statsInterval);
   }, []);
 
   // Função para atualizar as estatísticas de conexão
   const refreshConnectionStats = async () => {
     try {
-      if (isInitialized) {
-        const stats = await ApiService.getDatabaseStats();
+      // Tenta obter estatísticas mesmo se não estiver inicializado
+      // Isso ajuda a recuperar de erros de conexão
+      const stats = await ApiService.getDatabaseStats();
+      
+      if (stats) {
+        // Se recebemos estatísticas, consideramos a conexão inicializada
+        setIsInitialized(true);
         setConnectionStats(stats);
+        setError(null);
         return stats;
       }
       return null;
     } catch (error) {
       console.error('Erro ao atualizar estatísticas:', error);
+      // Não alteramos o estado de inicialização aqui para evitar
+      // que um erro temporário afete toda a interface
       return null;
+    } finally {
+      setIsLoading(false);
     }
   };
 

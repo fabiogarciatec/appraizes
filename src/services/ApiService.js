@@ -28,10 +28,11 @@ class ApiService {
 
   // Método para realizar requisições GET
   static async get(endpoint) {
+    const startTime = Date.now();
     try {
       // Constrói a URL completa
       const url = this.getUrl(endpoint);
-      console.log(`Iniciando requisição GET para: ${url}`);
+      console.log(`[${new Date().toISOString()}] Iniciando requisição GET para: ${url}`);
       
       // Realiza a requisição
       const response = await fetch(url, {
@@ -44,7 +45,8 @@ class ApiService {
         cache: 'no-cache'
       });
       
-      console.log(`Resposta recebida de ${endpoint}:`, response.status);
+      const responseTime = Date.now() - startTime;
+      console.log(`[${new Date().toISOString()}] Resposta recebida de ${endpoint}: status=${response.status}, tempo=${responseTime}ms`);
       
       // Verifica se a resposta foi bem-sucedida
       if (!response.ok) {
@@ -62,10 +64,11 @@ class ApiService {
       
       // Processa a resposta
       const data = await response.json();
-      console.log(`Dados recebidos de ${endpoint}:`, data);
+      console.log(`[${new Date().toISOString()}] Dados recebidos de ${endpoint}:`, data);
       return data;
     } catch (error) {
-      console.error(`Erro na requisição GET para ${endpoint}:`, error);
+      const errorTime = Date.now() - startTime;
+      console.error(`[${new Date().toISOString()}] Erro na requisição GET para ${endpoint} após ${errorTime}ms:`, error);
       throw error;
     }
   }
@@ -186,7 +189,7 @@ class ApiService {
   // Método para testar a conexão com o banco de dados
   static async testDatabaseConnection() {
     try {
-      const result = await this.get('/database/test');
+      const result = await this.get('/api/database/test');
       console.log('Resultado do teste de conexão:', result);
       return result;
     } catch (error) {
@@ -199,9 +202,25 @@ class ApiService {
   // Obter estatísticas de conexão com o banco de dados
   static async getDatabaseStats() {
     try {
-      const stats = await this.get('/database/stats');
-      console.log('Estatísticas do banco de dados:', stats);
-      return stats;
+      const response = await this.get('/api/database/stats');
+      console.log('Resposta de estatísticas do banco de dados:', response);
+      
+      // A API pode retornar as estatísticas diretamente ou dentro de um objeto
+      const stats = response.stats || response;
+      
+      // Garantir que todas as propriedades esperadas existam
+      return {
+        totalQueries: stats.totalQueries || 0,
+        successfulQueries: stats.successfulQueries || 0,
+        failedQueries: stats.failedQueries || 0,
+        lastQueryTime: stats.lastQueryTime || 0,
+        averageQueryTime: stats.averageQueryTime || 0,
+        lastError: stats.lastError || null,
+        // Incluir outras estatísticas que possam ser úteis
+        totalUsers: stats.totalUsers || 0,
+        totalClients: stats.totalClients || 0,
+        totalEquipments: stats.totalEquipments || 0
+      };
     } catch (error) {
       console.error('Erro ao obter estatísticas do banco de dados:', error);
       // Retornando um objeto vazio para evitar quebrar a interface
@@ -211,11 +230,7 @@ class ApiService {
         failedQueries: 0,
         lastQueryTime: 0,
         averageQueryTime: 0,
-        totalUsers: 0,
-        totalClients: 0, 
-        totalEquipments: 0,
-        totalMachineFamilies: 0,
-        totalMachineModels: 0
+        lastError: null
       };
     }
   }
