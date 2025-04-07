@@ -12,6 +12,9 @@ RUN npm install
 # Copiar código fonte
 COPY . .
 
+# Definir a URL base da API para o frontend
+ENV VITE_API_BASE_URL="https://raizesapp.fatec.info"
+
 # Construir o frontend
 RUN npm run build
 

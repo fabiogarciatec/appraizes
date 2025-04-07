@@ -36,6 +36,7 @@ services:
         - traefik.http.routers.appraizes-frontend.tls.certresolver=letsencryptresolver
         - traefik.http.routers.appraizes-frontend.service=appraizes-frontend
         - traefik.http.services.appraizes-frontend.loadbalancer.server.port=5173
+        - traefik.http.routers.appraizes-frontend.priority=1
         
         # Configuração para a API
         - traefik.http.routers.appraizes-api.rule=Host(`raizesapp.fatec.info`) && PathPrefix(`/api`)
@@ -43,6 +44,7 @@ services:
         - traefik.http.routers.appraizes-api.tls.certresolver=letsencryptresolver
         - traefik.http.routers.appraizes-api.service=appraizes-api
         - traefik.http.services.appraizes-api.loadbalancer.server.port=3001
+        - traefik.http.routers.appraizes-api.priority=2
 
 networks:
   minha_rede:
