@@ -91,15 +91,14 @@ function App() {
         <DatabaseProvider>
           <Router>
             <Routes>
-            {/* Redirecionar a rota raiz para login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={
+            {/* Rota principal protegida */}
+            <Route path="/" element={
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
             }>
-              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="solicitacoes" element={<QuoteRequests />} />
               <Route path="solicitacoes/nova" element={<NewQuoteRequest />} />
               <Route path="solicitacoes/:id/identificar" element={<IdentifyPart />} />

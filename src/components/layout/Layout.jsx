@@ -95,7 +95,7 @@ export default function Layout() {
 
   // Itens de menu comuns a todos os usuários
   const commonMenuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Solicitações', icon: <ListAltIcon />, path: '/solicitacoes' },
     { text: 'Nova Solicitação', icon: <AddIcon />, path: '/solicitacoes/nova' },
     { text: 'Clientes', icon: <BusinessIcon />, path: '/clientes' },
