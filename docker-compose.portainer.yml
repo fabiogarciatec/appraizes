@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Serviço para a aplicação (API + Frontend)
+  app:
+    image: fatec@fatec.info/appraizes:latest
+    container_name: appraizes-app
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=207.180.249.172
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=Fatec555133
+      - DB_NAME=appraizes_db
+      - API_PORT=3001
+    ports:
+      - "3001:3001"
+    networks:
+      - appraizes-network
+    volumes:
+      - appraizes_logs:/app/logs
+
+  # Serviço para o servidor web Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: appraizes-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - nginx_config:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - appraizes-network
+
+networks:
+  appraizes-network:
+    driver: bridge
+
+volumes:
+  appraizes_logs:
+    driver: local
+  nginx_config:
+    driver: local
