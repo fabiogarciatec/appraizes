@@ -24,7 +24,11 @@ export const AuthProvider = ({ children }) => {
       const data = await ApiService.post('/api/auth/login', { username, password });
       console.log('Resposta do login:', data);
       
-      if (data.success && data.user) {
+      if (data.success && data.user && data.token) {
+        // Salvar o token JWT
+        ApiService.setAuthToken(data.token);
+        console.log('Token JWT salvo após login');
+        
         // Usuário autenticado com sucesso
         setCurrentUser(data.user);
         localStorage.setItem('currentUser', JSON.stringify(data.user));
@@ -40,6 +44,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
+    // Remover o token JWT quando o usuário fizer logout
+    ApiService.clearAuthToken();
   };
 
   return (

@@ -25,6 +25,38 @@ console.log(`URL base da API configurada para: ${API_BASE_URL}`);
 
 // Classe ApiService para gerenciar todas as chamadas à API
 class ApiService {
+  // Métodos para gerenciar o token JWT
+  static getAuthToken() {
+    return localStorage.getItem('authToken');
+  }
+  
+  static setAuthToken(token) {
+    if (token) {
+      localStorage.setItem('authToken', token);
+      console.log('Token JWT armazenado');
+    }
+  }
+  
+  static clearAuthToken() {
+    localStorage.removeItem('authToken');
+    console.log('Token JWT removido');
+  }
+  
+  // Adiciona o token JWT aos cabeçalhos da requisição
+  static getAuthHeaders() {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+    
+    const token = this.getAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
+  }
+  
   // Método para construir a URL completa da API
   static getUrl(endpoint) {
     // Garante que endpoint seja uma string
@@ -57,9 +89,7 @@ class ApiService {
       
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
+        headers: this.getAuthHeaders(),
         mode: 'cors',
         credentials: 'same-origin',
         signal: controller.signal
@@ -103,10 +133,7 @@ class ApiService {
       
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: this.getAuthHeaders(),
         mode: 'cors',
         credentials: 'same-origin',
         signal: controller.signal,
@@ -137,15 +164,20 @@ class ApiService {
       const url = this.getUrl(endpoint);
       console.log(`Iniciando requisição PUT para: ${url}`, data);
       
+      // Realiza a requisição com timeout de 10 segundos
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
       const response = await fetch(url, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: this.getAuthHeaders(),
         mode: 'cors',
+        credentials: 'same-origin',
+        signal: controller.signal,
         body: JSON.stringify(data)
       });
+      
+      clearTimeout(timeoutId);
       
       console.log(`Resposta recebida de ${endpoint}:`, response.status);
       
@@ -169,13 +201,19 @@ class ApiService {
       const url = this.getUrl(endpoint);
       console.log(`Iniciando requisição DELETE para: ${url}`);
       
+      // Realiza a requisição com timeout de 10 segundos
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
       const response = await fetch(url, {
         method: 'DELETE',
-        headers: {
-          'Accept': 'application/json'
-        },
-        mode: 'cors'
+        headers: this.getAuthHeaders(),
+        mode: 'cors',
+        credentials: 'same-origin',
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       console.log(`Resposta recebida de ${endpoint}:`, response.status);
       
@@ -311,7 +349,19 @@ class ApiService {
   
   // Autenticar usuário (login)
   static async login(credentials) {
-    return this.post('/api/auth/login', credentials);
+    try {
+      const response = await this.post('/api/auth/login', credentials);
+      
+      // Se o login for bem-sucedido, armazena o token
+      if (response.success && response.token) {
+        this.setAuthToken(response.token);
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Erro durante login:', error);
+      throw error;
+    }
   }
 }
 

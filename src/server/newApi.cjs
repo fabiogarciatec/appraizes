@@ -5,6 +5,8 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const { clearLog, logToFile, requestLogger } = require('./api-log.cjs');
 
 // Carrega as variáveis de ambiente
@@ -12,6 +14,11 @@ dotenv.config();
 
 // Limpa o arquivo de log ao iniciar o servidor
 clearLog();
+
+// Chave secreta para assinatura dos tokens JWT
+const JWT_SECRET = process.env.JWT_SECRET || 'appraizes-secret-key-2025';
+// Tempo de expiração do token (1 dia)
+const JWT_EXPIRATION = '24h';
 
 // Inicialização do servidor
 const app = express();
@@ -30,6 +37,63 @@ app.use(requestLogger);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware para verificar autenticação JWT
+const authenticateJWT = (req, res, next) => {
+  // Rotas públicas que não precisam de autenticação
+  const publicRoutes = [
+    '/api/status',
+    '/api/auth/login',
+    '/api/database/test',
+    '/api/database/stats'
+  ];
+  
+  // Verifica se a rota atual é pública ou se é uma requisição OPTIONS (preflight CORS)
+  const isPublicRoute = publicRoutes.includes(req.path) || 
+                       req.method === 'OPTIONS';
+  
+  if (isPublicRoute) {
+    return next();
+  }
+  
+  // Obtém o token do cabeçalho Authorization
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    logToFile(`Acesso negado: Token não fornecido para ${req.path}`);
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Acesso negado: Token não fornecido' 
+    });
+  }
+  
+  // O formato esperado é "Bearer TOKEN"
+  const token = authHeader.split(' ')[1];
+  
+  if (!token) {
+    logToFile(`Acesso negado: Formato de token inválido para ${req.path}`);
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Acesso negado: Formato de token inválido' 
+    });
+  }
+  
+  try {
+    // Verifica e decodifica o token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // Adiciona as informações do usuário ao objeto de requisição
+    next();
+  } catch (error) {
+    logToFile(`Acesso negado: Token inválido para ${req.path} - ${error.message}`);
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Acesso negado: Token inválido ou expirado' 
+    });
+  }
+};
+
+// Aplica o middleware de autenticação a todas as rotas
+app.use(authenticateJWT);
 
 // Estatísticas de conexão
 const connectionStats = {
@@ -210,8 +274,31 @@ app.post('/api/auth/login', async (req, res) => {
     
     const user = users[0];
     
-    // Verifica a senha (implementação simples, sem hash por enquanto)
-    if (user.password !== password) {
+    // Verifica a senha usando bcrypt
+    // Verificação temporária para compatibilidade com senhas existentes
+    let senhaCorreta = false;
+    
+    // Verifica se a senha já está em formato hash (começa com $2b$)
+    if (user.password.startsWith('$2b$')) {
+      // Senha já está em formato hash, usa bcrypt para comparar
+      senhaCorreta = await bcrypt.compare(password, user.password);
+    } else {
+      // Senha ainda está em texto simples, faz comparação direta
+      // e atualiza para hash se estiver correta
+      senhaCorreta = user.password === password;
+      
+      if (senhaCorreta) {
+        // Atualiza a senha para usar hash
+        const senhaHash = await bcrypt.hash(password, 10);
+        await executeQuery(
+          'UPDATE users SET password = ? WHERE id = ?',
+          [senhaHash, user.id]
+        );
+        console.log(`Senha do usuário ${user.username} atualizada para formato hash`);
+      }
+    }
+    
+    if (!senhaCorreta) {
       return res.status(401).json({ 
         success: false, 
         message: 'Senha incorreta' 
@@ -219,18 +306,33 @@ app.post('/api/auth/login', async (req, res) => {
     }
     
     // Remove a senha do objeto de usuário antes de enviar na resposta
-    delete user.password;
+    const { password: userPassword, ...userWithoutPassword } = user;
     
-    res.json({
-      success: true,
+    // Gera um token JWT com as informações do usuário
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        username: user.username, 
+        role: user.role 
+      }, 
+      JWT_SECRET, 
+      { expiresIn: JWT_EXPIRATION }
+    );
+    
+    logToFile(`Login bem-sucedido: ${username} (ID: ${user.id})`);
+    
+    res.json({ 
+      success: true, 
       message: 'Login realizado com sucesso',
-      user: user
+      user: userWithoutPassword,
+      token: token
     });
   } catch (error) {
     console.error('Erro durante login:', error);
+    logToFile(`Erro durante login: ${error.message}`);
     res.status(500).json({ 
       success: false, 
-      message: 'Erro durante o processo de login',
+      message: 'Erro interno do servidor durante login',
       error: error.message
     });
   }
@@ -280,10 +382,13 @@ app.post('/api/users', async (req, res) => {
       });
     }
     
-    // Insere o novo usuário
+    // Gera o hash da senha
+    const senhaHash = await bcrypt.hash(password, 10);
+    
+    // Insere o novo usuário com senha em hash
     const result = await executeQuery(
       'INSERT INTO users (username, name, email, role, password, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, TRUE, NOW(), NOW())',
-      [username, name, email, role, password]
+      [username, name, email, role, senhaHash]
     );
     
     // Busca o usuário recém-criado
@@ -422,8 +527,10 @@ app.put('/api/users/:id', async (req, res) => {
     
     // Adiciona a senha na query se ela foi fornecida
     if (password) {
+      // Gera o hash da senha
+      const senhaHash = await bcrypt.hash(password, 10);
       query += ', password = ?';
-      params.push(password);
+      params.push(senhaHash);
     }
     
     // Adiciona a condição WHERE

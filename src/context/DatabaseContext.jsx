@@ -29,9 +29,17 @@ export const DatabaseProvider = ({ children }) => {
   useEffect(() => {
     const checkApiStatus = async () => {
       try {
+        // Verifica se há um token de autenticação antes de tentar acessar o banco de dados
+        const token = ApiService.getAuthToken();
+        if (!token) {
+          console.log('[DatabaseContext] Usuário não autenticado, pulando verificação do banco de dados');
+          setIsLoading(false);
+          return;
+        }
+        
         setIsLoading(true);
         setError(null);
-        console.log('[DatabaseContext] Verificando status da API...');
+        console.log('[DatabaseContext] Usuário autenticado, verificando status da API...');
         
         // Verifica o status da API usando ApiService
         const apiStatus = await ApiService.get('/api/status');
