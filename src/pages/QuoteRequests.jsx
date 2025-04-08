@@ -107,8 +107,15 @@ export default function QuoteRequests() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: '100%', mb: 4 }}>
+    <Box sx={{ width: '100%', p: 2 }}>
+      <Paper elevation={3} sx={{ 
+        p: 4, 
+        borderRadius: 2, 
+        width: '100%', 
+        mb: 4,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        overflow: 'hidden'
+      }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Typography variant="h5" component="h1" sx={{ color: 'primary.main', fontWeight: 600 }}>
             Solicitações de Orçamento
@@ -178,6 +185,7 @@ export default function QuoteRequests() {
           borderRadius: 2, 
           boxShadow: '0 2px 8px rgba(0,0,0,0.05)', 
           overflow: 'hidden',
+          width: '100%',
           '& .MuiTableCell-head': {
             backgroundColor: alpha(theme.palette.primary.main, 0.08),
             color: theme.palette.text.secondary,

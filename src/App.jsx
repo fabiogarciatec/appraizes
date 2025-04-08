@@ -24,6 +24,7 @@ import EquipmentManagement from './pages/EquipmentManagement'
 import PartManagement from './pages/PartManagement'
 import FuelManagement from './pages/FuelManagement'
 import Settings from './pages/Settings'
+import Profile from './pages/Profile'
 import NotFound from './pages/NotFound'
 
 // Estilos globais
@@ -109,10 +110,13 @@ function App() {
               <Route path="equipamentos" element={<EquipmentManagement />} />
               <Route path="abastecimentos" element={<FuelManagement />} />
               <Route path="pecas" element={<PartManagement />} />
+              <Route path="pecas/cadastro" element={<PartManagement />} />
               <Route path="usuarios" element={<UserManagement />} />
               <Route path="configuracoes" element={<Settings />} />
+              <Route path="perfil" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="/configuracoes" element={<Settings />} />
             </Routes>
           </Router>
         </DatabaseProvider>

@@ -193,7 +193,7 @@ export default function Dashboard() {
   }, [currentUser]);
 
   return (
-    <Box className="dashboard-container" sx={{ p: '4px 16px', width: '100%', boxSizing: 'border-box' }}>
+    <Box className="dashboard-container" sx={{ p: '4px 16px', width: '100%', boxSizing: 'border-box', flex: 1, display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 1, mt: 0 }}>
         Dashboard
       </Typography>

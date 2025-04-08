@@ -38,6 +38,54 @@ body {
   box-sizing: border-box;
 }
 
+/* Regras para eliminar espaços entre elementos */
+.MuiDrawer-root .MuiDrawer-paper {
+  border-right: none !important;
+}
+
+.MuiBox-root {
+  margin: 0;
+  padding: 0;
+}
+
+/* Regra específica para o container principal */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Regras específicas para eliminar o espaço entre o menu e o conteúdo */
+.MuiDrawer-root {
+  border-right: none !important;
+}
+
+/* Forçar o conteúdo a ocupar todo o espaço disponível */
+#root > div {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remover qualquer espaço entre elementos */
+* {
+  box-sizing: border-box;
+}
+
+/* Ajuste específico para o cabeçalho do menu lateral */
+.MuiDrawer-root .MuiDrawer-paper > div:first-child > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Garantir que o cabeçalho do menu lateral esteja alinhado com a barra superior */
+.MuiAppBar-root, .MuiDrawer-paper > div > div:first-child {
+  height: 64px !important;
+  min-height: 64px !important;
+}
+
 html {
   box-sizing: border-box;
   width: 100%;

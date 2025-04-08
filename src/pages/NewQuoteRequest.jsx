@@ -160,25 +160,33 @@ export default function NewQuoteRequest() {
   };
   
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 1 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: '100%' }}>
-        <Typography variant="h5" component="h1" gutterBottom sx={{ color: 'primary.main', fontWeight: 600, mb: 3 }}>
-          Nova Solicitação de Identificação de Peça
-        </Typography>
-        
-        {/* Stepper para navegação entre etapas */}
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label, index) => (
-            <Step key={label} completed={isStepComplete(index)}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        
+    <Box sx={{ width: '100%', p: 2 }}>
+      <Paper elevation={3} sx={{ 
+        p: 4, 
+        borderRadius: 2, 
+        width: '100%', 
+        mb: 4,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        overflow: 'hidden'
+      }}>
+        <Box sx={{ mb: 4 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          <Typography variant="h5" component="h1" sx={{ mb: 4 }}>
+            Nova Solicitação de Identificação de Peça
+          </Typography>
+        </Box>
+
         <form onSubmit={formik.handleSubmit}>
           {/* Passo 1: Informações Básicas */}
           {activeStep === 0 && (
-            <Card variant="outlined" sx={{ mb: 3 }}>
+            <Card variant="outlined" sx={{ width: '100%', mb: 3 }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                   <BusinessIcon color="primary" sx={{ mr: 1 }} />
@@ -326,7 +334,7 @@ export default function NewQuoteRequest() {
           
           {/* Passo 2: Dados da Máquina */}
           {activeStep === 1 && (
-            <Card variant="outlined" sx={{ mb: 3 }}>
+            <Card variant="outlined" sx={{ width: '100%', mb: 3 }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                   <DirectionsCarIcon color="primary" sx={{ mr: 1 }} />
@@ -594,7 +602,7 @@ export default function NewQuoteRequest() {
           
           {/* Passo 3: Detalhes Adicionais */}
           {activeStep === 2 && (
-            <Card variant="outlined" sx={{ mb: 3 }}>
+            <Card variant="outlined" sx={{ width: '100%', mb: 3 }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                   <NotesIcon color="primary" sx={{ mr: 1 }} />
