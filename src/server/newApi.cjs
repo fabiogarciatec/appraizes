@@ -147,6 +147,7 @@ app.get('/api/database/test', async (req, res) => {
     // Retorna informações detalhadas
     res.json({
       success: true,
+      connected: true, // Campo esperado pelo DatabaseContext
       message: 'Conexão com o banco de dados estabelecida com sucesso',
       timestamp: new Date().toISOString(),
       database: process.env.DB_NAME,
@@ -158,6 +159,7 @@ app.get('/api/database/test', async (req, res) => {
     console.error('Erro ao testar conexão:', error);
     res.status(500).json({ 
       success: false, 
+      connected: false, // Campo esperado pelo DatabaseContext
       message: 'Erro ao testar conexão com o banco de dados',
       error: error.message
     });

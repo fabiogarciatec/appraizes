@@ -18,28 +18,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      // Obter a URL base do ApiService
-      const getBaseUrl = () => {
-        if (window.location.hostname !== 'localhost') {
-          return `https://${window.location.hostname}`;
-        }
-        return 'http://localhost:3001';
-      };
+      console.log('Tentando login com ApiService...');
       
-      // Autenticação via API usando a URL base correta
-      const response = await fetch(`${getBaseUrl()}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      // Autenticação via ApiService para manter a consistência
+      const data = await ApiService.post('/api/auth/login', { username, password });
       console.log('Resposta do login:', data);
       
       if (data.success && data.user) {

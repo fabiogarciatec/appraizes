@@ -37,15 +37,32 @@ export const DatabaseProvider = ({ children }) => {
         const apiStatus = await ApiService.get('/api/status');
         console.log('[DatabaseContext] Status da API:', apiStatus);
         
-        if (apiStatus && apiStatus.databaseConnection === 'connected') {
-          setIsInitialized(true);
-          console.log('[DatabaseContext] API conectada, obtendo estatísticas...');
-          const stats = await ApiService.getDatabaseStats();
-          console.log('[DatabaseContext] Estatísticas obtidas:', stats);
-          setConnectionStats(stats);
+        // Verifica se a API está online
+        if (apiStatus && apiStatus.status === 'online') {
+          console.log('[DatabaseContext] API online, verificando conexão com o banco de dados...');
+          
+          try {
+            // Agora verificamos a conexão com o banco de dados
+            const dbTest = await ApiService.get('/api/database/test');
+            console.log('[DatabaseContext] Teste de conexão com o banco:', dbTest);
+            
+            if (dbTest && dbTest.connected) {
+              setIsInitialized(true);
+              console.log('[DatabaseContext] Banco de dados conectado, obtendo estatísticas...');
+              const stats = await ApiService.getDatabaseStats();
+              console.log('[DatabaseContext] Estatísticas obtidas:', stats);
+              setConnectionStats(stats);
+            } else {
+              console.warn('[DatabaseContext] API está online, mas não está conectada ao banco de dados');
+              setError('API está online, mas não está conectada ao banco de dados');
+            }
+          } catch (dbError) {
+            console.warn('[DatabaseContext] Erro ao verificar conexão com o banco de dados:', dbError);
+            setError('API está online, mas houve um erro ao verificar o banco de dados');
+          }
         } else {
-          console.warn('[DatabaseContext] API não está conectada ao banco de dados');
-          setError('API não está conectada ao banco de dados');
+          console.warn('[DatabaseContext] API não está online');
+          setError('API não está online');
         }
       } catch (err) {
         console.error('[DatabaseContext] Erro ao verificar status da API:', err);
