@@ -19,6 +19,7 @@ import {
   TextField,
   FormControl,
   InputLabel,
+  Autocomplete,
   Select,
   MenuItem,
   Snackbar,
@@ -212,6 +213,14 @@ export default function EquipmentManagement() {
     message: '',
     severity: 'success'
   });
+
+  // --- Estados dos filtros ---
+  const [filterChassis, setFilterChassis] = useState('');
+  const [filterSeries, setFilterSeries] = useState('');
+  const [filterYear, setFilterYear] = useState('');
+  const [filterModelId, setFilterModelId] = useState('');
+  const [filterFamilyId, setFilterFamilyId] = useState('');
+  const [filterClientId, setFilterClientId] = useState('');
 
   // Inicializa os equipamentos ao montar o componente
   useEffect(() => {
@@ -429,16 +438,112 @@ export default function EquipmentManagement() {
   // Usando a função getFilteredModels já definida anteriormente
   const filteredModels = formData.familyId ? getFilteredModels() : [];
 
+  // --- Lógica de filtragem dos equipamentos ---
+  const filteredEquipments = equipments.filter(eq => {
+    // Chassi
+    if (filterChassis && !(eq.chassis || '').toLowerCase().includes(filterChassis.toLowerCase())) return false;
+    // Série
+    if (filterSeries && !(eq.series || '').toLowerCase().includes(filterSeries.toLowerCase())) return false;
+    // Ano
+    if (filterYear && String(eq.year) !== String(filterYear)) return false;
+    // Modelo
+    if (filterModelId && String(eq.modelId || eq.model_id) !== String(filterModelId)) return false;
+    // Família
+    if (filterFamilyId && String(eq.familyId || eq.family_id) !== String(filterFamilyId)) return false;
+    // Proprietário
+    if (filterClientId && String(eq.clientId || eq.client_id) !== String(filterClientId)) return false;
+    return true;
+  });
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
-          Cadastro de Equipamentos
-        </Typography>
+      {/* Cabeçalho no mesmo estilo das outras páginas */}
+      <Paper elevation={0} sx={{ bgcolor: 'transparent', mb: 4 }}>
+        <Box display="flex" alignItems="flex-start" gap={2} mb={1}>
+          <Box bgcolor="#1976d2" borderRadius={2} p={1.5} display="flex" alignItems="center" justifyContent="center">
+            <ConstructionIcon sx={{ color: '#fff', fontSize: 32 }} />
+          </Box>
+          <Box sx={{ textAlign: 'left' }}>
+            <Typography variant="h3" fontWeight={500} color="#444" sx={{ letterSpacing: 1 }}>
+              Equipamentos
+            </Typography>
+            <Typography variant="subtitle1" color="#888" fontWeight={400}>
+              Gerencie, edite e exclua equipamentos.
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+        <TextField
+          label="Filtrar por Chassi"
+          variant="outlined"
+          size="small"
+          value={filterChassis}
+          onChange={e => setFilterChassis(e.target.value)}
+          sx={{ minWidth: 150, background: '#fff', borderRadius: 2 }}
+          InputLabelProps={{ sx: { color: '#888' } }}
+        />
+        <TextField
+          label="Filtrar por Série"
+          variant="outlined"
+          size="small"
+          value={filterSeries}
+          onChange={e => setFilterSeries(e.target.value)}
+          sx={{ minWidth: 120, background: '#fff', borderRadius: 2 }}
+          InputLabelProps={{ sx: { color: '#888' } }}
+        />
+        <TextField
+          label="Filtrar por Ano"
+          variant="outlined"
+          size="small"
+          type="number"
+          value={filterYear}
+          onChange={e => setFilterYear(e.target.value)}
+          sx={{ minWidth: 100, background: '#fff', borderRadius: 2 }}
+          InputLabelProps={{ sx: { color: '#888' } }}
+        />
+        <Autocomplete
+  options={machineModels}
+  getOptionLabel={option => option.name || ''}
+  value={machineModels.find(m => String(m.id) === String(filterModelId)) || null}
+  onChange={(_, newValue) => setFilterModelId(newValue ? newValue.id : '')}
+  renderInput={(params) => (
+    <TextField {...params} label="Modelo" variant="outlined" size="small" sx={{ minWidth: 160, background: '#fff', borderRadius: 2 }} InputLabelProps={{ sx: { color: '#888' } }} />
+  )}
+  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+  clearOnEscape
+/>
+
+        <Autocomplete
+  options={machineFamilies}
+  getOptionLabel={option => option.name || ''}
+  value={machineFamilies.find(f => String(f.id) === String(filterFamilyId)) || null}
+  onChange={(_, newValue) => setFilterFamilyId(newValue ? newValue.id : '')}
+  renderInput={(params) => (
+    <TextField {...params} label="Família" variant="outlined" size="small" sx={{ minWidth: 160, background: '#fff', borderRadius: 2 }} InputLabelProps={{ sx: { color: '#888' } }} />
+  )}
+  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+  clearOnEscape
+/>
+
+        <Autocomplete
+  options={clients}
+  getOptionLabel={option => option.name || ''}
+  value={clients.find(c => String(c.id) === String(filterClientId)) || null}
+  onChange={(_, newValue) => setFilterClientId(newValue ? newValue.id : '')}
+  renderInput={(params) => (
+    <TextField {...params} label="Proprietário" variant="outlined" size="small" sx={{ minWidth: 160, background: '#fff', borderRadius: 2 }} InputLabelProps={{ sx: { color: '#888' } }} />
+  )}
+  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+  clearOnEscape
+/>
+
+        <Box flexGrow={1} />
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenAddDialog}
+          sx={{ whiteSpace: 'nowrap' }}
         >
           Novo Equipamento
         </Button>
@@ -460,54 +565,38 @@ export default function EquipmentManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {equipments.length === 0 ? (
+              {filteredEquipments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
                     <Typography variant="body1" sx={{ py: 2 }}>
-                      Nenhum equipamento cadastrado
+                      Nenhum equipamento encontrado
                     </Typography>
                   </TableCell>
                 </TableRow>
-              ) : (
-                equipments.map((equipment) => (
+              ) :
+                filteredEquipments.map((equipment) => (
                   <TableRow key={equipment.id} hover>
                     <TableCell>{equipment.chassis}</TableCell>
                     <TableCell>{equipment.series}</TableCell>
-                    <TableCell>{getModelName(equipment)}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        size="small" 
-                        label={getFamilyName(equipment)}
-                        color="primary"
-                        variant="outlined"
-                      />
-                    </TableCell>
+                    <TableCell>{getModelName(equipment.modelId || equipment.model_id)}</TableCell>
+                    <TableCell>{getFamilyName(equipment.familyId || equipment.family_id)}</TableCell>
                     <TableCell>{equipment.year}</TableCell>
-                    <TableCell>{equipment.hourmeter} h</TableCell>
-                    <TableCell>{getClientName(equipment)}</TableCell>
+                    <TableCell>{equipment.hourmeter}</TableCell>
+                    <TableCell>{getClientName(equipment.clientId || equipment.client_id)}</TableCell>
                     <TableCell align="center">
-                      <Tooltip title="Editar equipamento">
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleOpenEditDialog(equipment)}
-                          size="small"
-                        >
+                      <Tooltip title="Editar">
+                        <IconButton onClick={() => handleOpenEditDialog(equipment)} size="small">
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Excluir equipamento">
-                        <IconButton 
-                          color="error" 
-                          onClick={() => handleOpenDeleteDialog(equipment)}
-                          size="small"
-                        >
+                      <Tooltip title="Excluir">
+                        <IconButton onClick={() => handleOpenDeleteDialog(equipment)} size="small" color="error">
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -515,10 +604,22 @@ export default function EquipmentManagement() {
 
       {/* Dialog para adicionar/editar equipamento */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
+  <Paper elevation={3} sx={{ borderRadius: 4, p: 0, bgcolor: '#f9fafb' }}>
+    <Box display="flex" alignItems="center" gap={2} px={3} pt={3} pb={1}>
+      <Box bgcolor="#1976d2" borderRadius={2} p={1.2} display="flex" alignItems="center" justifyContent="center">
+        <ConstructionIcon sx={{ color: '#fff', fontSize: 28 }} />
+      </Box>
+      <Box sx={{ textAlign: 'left' }}>
+        <Typography variant="h5" fontWeight={600} color="#444">
           {dialogMode === 'add' ? 'Adicionar Novo Equipamento' : 'Editar Equipamento'}
-        </DialogTitle>
-        <DialogContent>
+        </Typography>
+        <Typography variant="subtitle2" color="#888" fontWeight={400}>
+          Preencha todos os campos obrigatórios para {dialogMode === 'add' ? 'adicionar' : 'editar'} um equipamento.
+        </Typography>
+      </Box>
+    </Box>
+        {/* Cabeçalho movido para Paper acima */}
+        <DialogContent sx={{ px: 3, pt: 0, pb: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
               name="chassis"
@@ -605,79 +706,59 @@ export default function EquipmentManagement() {
             />
             
             <FormControl fullWidth required>
-              <InputLabel id="client-label">Proprietário</InputLabel>
-              <Select
-                labelId="client-label"
-                name="clientId"
-                value={formData.clientId}
-                onChange={handleInputChange}
-                label="Proprietário"
-                startAdornment={<BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-              >
-                {clients.map((client) => (
-                  <MenuItem key={client.id} value={client.id}>
-                    {client.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+  <InputLabel id="client-label">Proprietário</InputLabel>
+  <Select
+    labelId="client-label"
+    name="clientId"
+    value={formData.clientId}
+    onChange={handleInputChange}
+    label="Proprietário"
+    startAdornment={<BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+  >
+    {clients.map((client) => (
+      <MenuItem key={client.id} value={client.id}>
+        {client.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+</Box>
+          <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+            <Button onClick={handleCloseDialog} color="secondary" variant="outlined">
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit} color="primary" variant="contained" disabled={isSubmitting}>
+              {isSubmitting ? <CircularProgress size={22} /> : dialogMode === 'add' ? 'Adicionar' : 'Salvar'}
+            </Button>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} disabled={isSubmitting}>Cancelar</Button>
-          <Button 
-            onClick={handleSubmit} 
-            variant="contained" 
-            disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
-          >
-            {dialogMode === 'add' ? 'Adicionar' : 'Salvar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      </Paper>
+    </Dialog>
 
-      {/* Dialog de confirmação para excluir equipamento */}
-      <Dialog
-        open={confirmDeleteDialog}
-        onClose={handleCloseDeleteDialog}
-      >
-        <DialogTitle>Confirmar Exclusão</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Tem certeza que deseja excluir o equipamento "{equipmentToDelete?.chassis}" 
-            ({getModelName(equipmentToDelete)})?
-            Esta ação não pode ser desfeita.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} disabled={isSubmitting}>Cancelar</Button>
-          <Button 
-            onClick={handleConfirmDelete} 
-            color="error" 
-            variant="contained"
-            disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
-          >
-            Excluir
-          </Button>
-        </DialogActions>
-      </Dialog>
+    {/* Dialog de confirmação de exclusão */}
+    <Dialog open={confirmDeleteDialog} onClose={handleCloseDeleteDialog} maxWidth="xs" fullWidth>
+      <DialogTitle>Confirmar Exclusão</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Tem certeza que deseja excluir este equipamento?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseDeleteDialog} color="secondary">
+          Cancelar
+        </Button>
+        <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={isSubmitting}>
+          {isSubmitting ? <CircularProgress size={22} /> : 'Excluir'}
+        </Button>
+      </DialogActions>
+    </Dialog>
 
-      {/* Snackbar para feedback */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    {/* Snackbar para feedback de ações */}
+    <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+      <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+  </Box>
   );
 }
