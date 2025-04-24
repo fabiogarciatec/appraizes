@@ -567,10 +567,22 @@ export default function EquipmentManagement() {
             <TableBody>
               {filteredEquipments.length === 0 ? (
                 <TableRow>
-                    <TableCell>{getFamilyName(equipment.familyId || equipment.family_id)}</TableCell>
+                  <TableCell colSpan={8} align="center">
+                    <Typography variant="body1" sx={{ py: 2 }}>
+                      Nenhum equipamento encontrado
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredEquipments.map((equipment) => (
+                  <TableRow key={equipment.id} hover>
+                    <TableCell>{equipment.chassis}</TableCell>
+                    <TableCell>{equipment.series}</TableCell>
+                    <TableCell>{getModelName(equipment)}</TableCell>
+                    <TableCell>{getFamilyName(equipment)}</TableCell>
                     <TableCell>{equipment.year}</TableCell>
                     <TableCell>{equipment.hourmeter}</TableCell>
-                    <TableCell>{getClientName(equipment.clientId || equipment.client_id)}</TableCell>
+                    <TableCell>{getClientName(equipment)}</TableCell>
                     <TableCell align="center">
                       <Tooltip title="Editar">
                         <IconButton onClick={() => handleOpenEditDialog(equipment)} size="small">
@@ -584,7 +596,8 @@ export default function EquipmentManagement() {
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -698,114 +711,7 @@ export default function EquipmentManagement() {
   getOptionLabel={option => option?.name || ''}
   value={clients.find(c => String(c.id) === String(formData.clientId)) || null}
   onChange={(_, newValue) => {
-<<<<<<< HEAD
-=======
     setFormData({ ...formData, clientId: newValue ? newValue.id : '' });
-  }}
-  renderInput={(params) => (
-    <TextField {...params} label="Proprietário" variant="outlined" required fullWidth InputLabelProps={{ sx: { color: '#888' } }}
-      InputProps={{ ...params.InputProps, startAdornment: <BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
-    />
-  )}
-  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-  clearOnEscape
-/>
-</Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <TextField
-                name="chassis"
-                label="Chassi"
-                value={formData.chassis}
-                onChange={handleInputChange}
-                fullWidth
-                required
-                InputProps={{
-                  startAdornment: <NumbersIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
-              <TextField
-                name="series"
-                label="Série"
-                value={formData.series}
-                onChange={handleInputChange}
-                fullWidth
-                InputProps={{
-                  startAdornment: <TagIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
-              
-              <Autocomplete
-  options={machineFamilies}
-  getOptionLabel={option => option?.name || ''}
-  value={machineFamilies.find(f => String(f.id) === String(formData.familyId)) || null}
-  onChange={(_, newValue) => {
-    setFormData({
-      ...formData,
-      familyId: newValue ? newValue.id : '',
-      modelId: '' // Limpa o modelo ao trocar família
-    });
-  }}
-  renderInput={(params) => (
-    <TextField {...params} label="Família" required fullWidth InputProps={{ ...params.InputProps, startAdornment: <CategoryIcon sx={{ mr: 1, color: 'text.secondary' }} /> }} />
-  )}
-  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-  clearOnEscape
-/>
-              
-              <Autocomplete
-  options={filteredModels}
-  getOptionLabel={option => option?.name || ''}
-  value={filteredModels.find(m => String(m.id) === String(formData.modelId)) || null}
-  onChange={(_, newValue) => {
-    setFormData({
-      ...formData,
-      modelId: newValue ? newValue.id : ''
-    });
-  }}
-  renderInput={(params) => (
-    <TextField {...params} label="Modelo" required fullWidth InputProps={{ ...params.InputProps, startAdornment: <ConstructionIcon sx={{ mr: 1, color: 'text.secondary' }} /> }} />
-  )}
-  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-  clearOnEscape
-  disabled={!formData.familyId}
-/>
-              
-              <TextField
-                name="year"
-                label="Ano de Fabricação"
-                type="number"
-                value={formData.year}
-                onChange={handleInputChange}
-                fullWidth
-                InputProps={{
-                  startAdornment: <CalendarMonthIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  inputProps: { min: 1900, max: new Date().getFullYear() }
-                }}
-              />
-              
-              <TextField
-                name="hourmeter"
-                label="Horímetro (horas)"
-                type="number"
-                value={formData.hourmeter}
-                onChange={handleInputChange}
-                fullWidth
-                InputProps={{
-                  startAdornment: <AccessTimeIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  inputProps: { min: 0 }
-                }}
-              />
-              
-              <Autocomplete
-  options={clients}
-  getOptionLabel={option => option?.name || ''}
-  value={clients.find(c => String(c.id) === String(formData.clientId)) || null}
-  onChange={(_, newValue) => {
->>>>>>> eed667e (feat: atualizações gerais, autocomplete nos modais, novos componentes e ajustes de backend)
-    setFormData({
-      ...formData,
-      clientId: newValue ? newValue.id : ''
-    });
   }}
   renderInput={(params) => (
     <TextField {...params} label="Proprietário" required fullWidth InputProps={{ ...params.InputProps, startAdornment: <BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} /> }} />
@@ -813,11 +719,9 @@ export default function EquipmentManagement() {
   isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
   clearOnEscape
 />
-<<<<<<< HEAD
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
-          <Button onClick={handleCloseDialog} disabled={isSubmitting} sx={{ borderRadius: 2, fontWeight: 500 }}>Cancelar</Button>
+        <DialogActions>
           <Button 
             onClick={handleSubmit} 
             variant="contained" 
@@ -832,65 +736,33 @@ export default function EquipmentManagement() {
     </Dialog>
 
     <Dialog open={confirmDeleteDialog} onClose={handleCloseDeleteDialog} maxWidth="xs" fullWidth>
-=======
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
-            <Button onClick={handleCloseDialog} disabled={isSubmitting} sx={{ borderRadius: 2, fontWeight: 500 }}>Cancelar</Button>
-            <Button 
-              onClick={handleSubmit} 
-              variant="contained" 
-              color="primary" 
-              disabled={isSubmitting}
-              sx={{ fontWeight: 600, borderRadius: 2, px: 4 }}
-            >
-              {dialogMode === 'add' ? 'Salvar' : 'Atualizar'}
-            </Button>
-          </DialogActions>
-        </Paper>
-      </Dialog>
+      <DialogTitle>Confirmar Exclusão</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Tem certeza que deseja excluir o equipamento "{equipmentToDelete?.chassis}" ({getModelName(equipmentToDelete)})?
+          Esta ação não pode ser desfeita.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseDeleteDialog} disabled={isSubmitting}>Cancelar</Button>
+        <Button 
+          onClick={handleConfirmDelete} 
+          color="error" 
+          variant="contained"
+          disabled={isSubmitting}
+          startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+        >
+          Excluir
+        </Button>
+      </DialogActions>
+    </Dialog>
 
-      <Dialog open={confirmDeleteDialog} onClose={handleCloseDeleteDialog} maxWidth="xs" fullWidth>
->>>>>>> eed667e (feat: atualizações gerais, autocomplete nos modais, novos componentes e ajustes de backend)
-  <DialogTitle>Confirmar Exclusão</DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      Tem certeza que deseja excluir o equipamento "{equipmentToDelete?.chassis}" 
-<<<<<<< HEAD
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseDeleteDialog} color="secondary">
-      Cancelar
-    </Button>
-    <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={isSubmitting}>
-      {isSubmitting ? <CircularProgress size={22} /> : 'Excluir'}
-=======
-      ({getModelName(equipmentToDelete)})?
-      Esta ação não pode ser desfeita.
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseDeleteDialog} disabled={isSubmitting}>Cancelar</Button>
-    <Button 
-      onClick={handleConfirmDelete} 
-      color="error" 
-      variant="contained"
-      disabled={isSubmitting}
-      startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
-    >
-      Excluir
->>>>>>> eed667e (feat: atualizações gerais, autocomplete nos modais, novos componentes e ajustes de backend)
-    </Button>
-  </DialogActions>
-</Dialog>
-
-{/* Snackbar para feedback de ações */}
-<Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-  <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-    {snackbar.message}
-  </Alert>
-</Snackbar>
-  </Box>
-  );
+    {/* Snackbar para feedback de ações */}
+    <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+      <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+</Box>
+);
 }
