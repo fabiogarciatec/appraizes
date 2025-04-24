@@ -1,0 +1,21 @@
+# Instruções para configuração do ambiente
+
+Para que o projeto funcione corretamente, você precisa criar um arquivo `.env` na raiz do projeto com as seguintes configurações:
+
+```
+# Configurações do banco de dados
+DB_HOST=207.180.249.172
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=Fatec555133
+DB_NAME=appraizes_db
+
+# Configurações da API
+API_PORT=3001
+NODE_ENV=production
+```
+
+Por favor, crie manualmente o arquivo `.env` com esse conteúdo na pasta raiz do projeto:
+c:\GitHub_Projetos\appraizes\.env
+
+Esse arquivo é ignorado pelo Git (está no .gitignore) por razões de segurança, por isso não podemos criá-lo automaticamente.

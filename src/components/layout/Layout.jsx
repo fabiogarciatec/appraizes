@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
+  Group as GroupIcon,
   Dashboard as DashboardIcon,
   ListAlt as ListAltIcon,
   Add as AddIcon,
@@ -49,7 +50,10 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Check as CheckIcon,
-  Agriculture as AgricultureIcon
+  Agriculture as AgricultureIcon,
+  PrecisionManufacturing as PrecisionManufacturingIcon,
+  GroupWork as GroupWorkIcon,
+  Label as LabelIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 
@@ -214,8 +218,9 @@ export default function Layout() {
       icon: <AgricultureIcon />, 
       type: 'submenu',
       submenu: [
-        { text: 'Famílias', icon: <CategoryIcon />, path: '/familias' },
-        { text: 'Modelos', icon: <InventoryIcon />, path: '/modelos' },
+        { text: 'Famílias', icon: <GroupWorkIcon />, path: '/familias' },
+        { text: 'Modelos', icon: <PrecisionManufacturingIcon />, path: '/modelos' },
+        { text: 'Marcas', icon: <LabelIcon />, path: '/marcas' },
         { text: 'Equipamentos', icon: <ConstructionIcon />, path: '/equipamentos' }
       ]
     },
@@ -225,8 +230,9 @@ export default function Layout() {
       icon: <BusinessIcon />, 
       type: 'submenu',
       submenu: [
-        { text: 'Cadastro', icon: <AddIcon />, path: '/clientes' },
-        { text: 'Frota de Máquinas', icon: <DirectionsCarIcon />, path: '/clientes/frota' }
+        { text: 'Listar Clientes', icon: <GroupIcon />, path: '/clientes' },
+        { text: 'Frota de Máquinas', icon: <AgricultureIcon />, path: '/clientes/frota' },
+        { text: 'Abastecimento', icon: <GasStationIcon />, path: '/abastecimentos' }
       ]
     },
     { 

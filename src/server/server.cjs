@@ -629,6 +629,68 @@ app.delete('/api/clients/:id', async (req, res) => {
   }
 });
 
+// ===== ROTAS DE MARCAS DE MÁQUINAS =====
+
+// Listar marcas de máquinas
+app.get('/api/machine-brands', async (req, res) => {
+  try {
+    const [brands] = await dbManager.query('SELECT id, name, created_at FROM marcas WHERE active = 1 ORDER BY id ASC');
+    res.json(brands);
+  } catch (error) {
+    console.error('Erro ao buscar marcas de máquinas:', error);
+    res.status(500).json({ error: 'Erro ao buscar marcas de máquinas: ' + error.message });
+  }
+});
+
+// Criar nova marca de máquina
+app.post('/api/machine-brands', async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'O campo name é obrigatório.' });
+    }
+    const [result] = await dbManager.query('INSERT INTO marcas (name, active, created_at, updated_at) VALUES (?, TRUE, NOW(), NOW())', [name]);
+    res.status(201).json({ id: result.insertId, name });
+  } catch (error) {
+    console.error('Erro ao criar marca:', error);
+    res.status(500).json({ error: 'Erro ao criar marca: ' + error.message });
+  }
+});
+
+// Atualizar marca de máquina
+app.put('/api/machine-brands/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'O campo name é obrigatório.' });
+    }
+    const [result] = await dbManager.query('UPDATE marcas SET name = ?, updated_at = NOW() WHERE id = ? AND active = TRUE', [name, id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Marca não encontrada.' });
+    }
+    res.json({ id, name });
+  } catch (error) {
+    console.error('Erro ao atualizar marca:', error);
+    res.status(500).json({ error: 'Erro ao atualizar marca: ' + error.message });
+  }
+});
+
+// Excluir marca de máquina (exclusão lógica)
+app.delete('/api/machine-brands/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await dbManager.query('UPDATE marcas SET active = FALSE, updated_at = NOW() WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Marca não encontrada.' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao excluir marca:', error);
+    res.status(500).json({ error: 'Erro ao excluir marca: ' + error.message });
+  }
+});
+
 // Inicialização do servidor
 app.listen(port, () => {
   console.log(`Servidor API rodando na porta ${port}`);

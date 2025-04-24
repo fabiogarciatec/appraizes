@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "setup-db": "node src/utils/setupDatabase.js",
     "test-db": "node src/utils/testDatabaseConnection.js",
-    "api": "node src/server/api.cjs",
+
     "simple-api": "node src/server/simpleApi.cjs",
     "new-api": "node src/server/newApi.cjs"
   },

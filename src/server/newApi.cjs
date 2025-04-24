@@ -1425,7 +1425,7 @@ app.get('/api/machine-families', async (req, res) => {
   console.log('Recebida requisição para /api/machine-families');
   try {
     const families = await executeQuery(
-      'SELECT * FROM machine_families WHERE active = TRUE ORDER BY name'
+      'SELECT id, name, created_at FROM machine_families WHERE active = TRUE ORDER BY name'
     );
     console.log('Famílias de máquinas encontradas:', families.length);
     res.json(families);
@@ -1435,41 +1435,199 @@ app.get('/api/machine-families', async (req, res) => {
   }
 });
 
-// Rota para obter todos os modelos de máquinas - implementação simplificada
-app.get('/api/machine-models', async (req, res) => {
-  console.log('Recebida requisição para /api/machine-models');
+// Rota para criar uma nova família de máquinas
+app.post('/api/machine-families', async (req, res) => {
   try {
-    // Consulta simples para obter apenas os campos essenciais
-    const query = 'SELECT id, name, family_id FROM machine_models WHERE active = 1 ORDER BY name';
-    console.log('Executando query:', query);
-    
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'O campo name é obrigatório.' });
+    }
+    const result = await executeQuery(
+      'INSERT INTO machine_families (name, active) VALUES (?, TRUE)',
+      [name]
+    );
+    res.status(201).json({ id: result.insertId, name });
+  } catch (error) {
+    console.error('Erro ao criar família de máquinas:', error);
+    res.status(500).json({ error: 'Erro ao criar família de máquinas: ' + error.message });
+  }
+});
+
+// Rota para atualizar uma família de máquinas
+app.put('/api/machine-families/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'O campo name é obrigatório.' });
+    }
+    const result = await executeQuery(
+      'UPDATE machine_families SET name = ? WHERE id = ? AND active = TRUE',
+      [name, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Família não encontrada.' });
+    }
+    res.json({ id, name });
+  } catch (error) {
+    console.error('Erro ao atualizar família de máquinas:', error);
+    res.status(500).json({ error: 'Erro ao atualizar família de máquinas: ' + error.message });
+  }
+});
+
+// Rota para deletar (remoção lógica) uma família de máquinas
+app.delete('/api/machine-families/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await executeQuery(
+      'UPDATE machine_families SET active = FALSE WHERE id = ?',
+      [id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Família não encontrada.' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao excluir família de máquinas:', error);
+    res.status(500).json({ error: 'Erro ao excluir família de máquinas: ' + error.message });
+  }
+});
+
+// Rotas para CRUD de marcas de máquinas
+
+// Listar marcas de máquinas
+app.get('/api/machine-brands', async (req, res) => {
+  try {
+    const brands = await executeQuery('SELECT id, name, created_at FROM marcas WHERE active = 1 ORDER BY name');
+    res.json(brands);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar marcas de máquinas: ' + error.message });
+  }
+});
+
+// Criar nova marca de máquina
+app.post('/api/machine-brands', async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'O campo name é obrigatório.' });
+    }
+    const result = await executeQuery('INSERT INTO marcas (name, active) VALUES (?, TRUE)', [name]);
+    res.status(201).json({ id: result.insertId, name });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao criar marca: ' + error.message });
+  }
+});
+
+// Atualizar marca de máquina
+app.put('/api/machine-brands/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'O campo name é obrigatório.' });
+    }
+    const result = await executeQuery('UPDATE marcas SET name = ? WHERE id = ? AND active = TRUE', [name, id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Marca não encontrada.' });
+    }
+    res.json({ id, name });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar marca: ' + error.message });
+  }
+});
+
+// Excluir marca de máquina (exclusão lógica)
+app.delete('/api/machine-brands/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await executeQuery('UPDATE marcas SET active = FALSE WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Marca não encontrada.' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir marca: ' + error.message });
+  }
+});
+
+// Rotas para CRUD de modelos de máquinas
+
+// Listar modelos de máquinas
+app.get('/api/machine-models', async (req, res) => {
+  try {
+    const query = 'SELECT id, name, family_id, created_at FROM machine_models WHERE active = 1 ORDER BY name';
     const models = await executeQuery(query);
-    console.log('Modelos de máquinas encontrados:', models.length);
-    
-    // Retorna os modelos como JSON
     res.json(models);
   } catch (error) {
-    console.error('Erro ao buscar modelos de máquinas:', error);
     res.status(500).json({ error: 'Erro ao buscar modelos de máquinas: ' + error.message });
+  }
+});
+
+// Criar novo modelo de máquina
+app.post('/api/machine-models', async (req, res) => {
+  try {
+    const { name, family_id } = req.body;
+    if (!name || !family_id) {
+      return res.status(400).json({ error: 'Nome e família são obrigatórios.' });
+    }
+    const result = await executeQuery(
+      'INSERT INTO machine_models (name, family_id, active) VALUES (?, ?, TRUE)',
+      [name, family_id]
+    );
+    res.status(201).json({ id: result.insertId, name, family_id });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao criar modelo: ' + error.message });
+  }
+});
+
+// Atualizar modelo de máquina
+app.put('/api/machine-models/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, family_id } = req.body;
+    if (!name || !family_id) {
+      return res.status(400).json({ error: 'Nome e família são obrigatórios.' });
+    }
+    const result = await executeQuery(
+      'UPDATE machine_models SET name = ?, family_id = ? WHERE id = ? AND active = TRUE',
+      [name, family_id, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Modelo não encontrado.' });
+    }
+    res.json({ id, name, family_id });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar modelo: ' + error.message });
+  }
+});
+
+// Excluir modelo de máquina (exclusão lógica)
+app.delete('/api/machine-models/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await executeQuery(
+      'UPDATE machine_models SET active = FALSE WHERE id = ?',
+      [id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Modelo não encontrado.' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir modelo: ' + error.message });
   }
 });
 
 // Rota alternativa para modelos com dados fixos (fallback)
 app.get('/api/models-fixed', (req, res) => {
-  console.log('Recebida requisição para /api/models-fixed');
-  
-  // Dados fixos para teste
   const modelos = [
     { id: 1, name: 'CAT 320', family_id: 1 },
     { id: 2, name: 'CAT 336', family_id: 1 },
     { id: 3, name: 'CAT 950', family_id: 2 }
   ];
-  
-  console.log('Retornando dados fixos de modelos:', modelos.length);
   res.json(modelos);
 });
-
-
 
 // Rota para listar todos os equipamentos
 app.get('/api/equipments', async (req, res) => {

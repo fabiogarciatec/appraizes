@@ -13,6 +13,7 @@ import Layout from './components/layout/Layout'
 // Páginas
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import FamilyManagement from './pages/FamilyManagement'
 import QuoteRequests from './pages/QuoteRequests'
 import NewQuoteRequest from './pages/NewQuoteRequest'
 import IdentifyPart from './pages/IdentifyPart'
@@ -23,6 +24,8 @@ import ClientManagement from './pages/ClientManagement'
 import EquipmentManagement from './pages/EquipmentManagement'
 import PartManagement from './pages/PartManagement'
 import FuelManagement from './pages/FuelManagement'
+import ModelManagement from './pages/ModelManagement'
+import BrandManagement from './pages/BrandManagement'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
 import NotFound from './pages/NotFound'
@@ -101,6 +104,8 @@ function App() {
               </ProtectedRoute>
             }>
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="familias" element={<FamilyManagement />} />
+              <Route path="modelos" element={<ModelManagement />} />
               <Route path="solicitacoes" element={<QuoteRequests />} />
               <Route path="solicitacoes/nova" element={<NewQuoteRequest />} />
               <Route path="solicitacoes/:id/identificar" element={<IdentifyPart />} />
@@ -108,6 +113,7 @@ function App() {
               <Route path="clientes" element={<ClientManagement />} />
               <Route path="clientes/:id/historico" element={<ClientHistory />} />
               <Route path="equipamentos" element={<EquipmentManagement />} />
+<Route path="marcas" element={<BrandManagement />} />
               <Route path="abastecimentos" element={<FuelManagement />} />
               <Route path="pecas" element={<PartManagement />} />
               <Route path="pecas/cadastro" element={<PartManagement />} />
