@@ -30,21 +30,31 @@ import Settings from './pages/Settings'
 import Profile from './pages/Profile'
 import NotFound from './pages/NotFound'
 
+// Knowledge Base Public
+import PortalLayout from './components/layout/PortalLayout'
+import PortalHome from './pages/KnowledgeBase/Public/PortalHome'
+import ArticleView from './pages/KnowledgeBase/Public/ArticleView'
+
+// Knowledge Base Admin
+import KBAdminList from './pages/KnowledgeBase/Admin/KBAdminList'
+import KBArticleEditor from './pages/KnowledgeBase/Admin/KBArticleEditor'
+import KBAdminCategories from './pages/KnowledgeBase/Admin/KBAdminCategories'
+
 // Estilos globais
 import './App.css'
 
 // Componente de rota protegida
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth()
-  
+
   if (loading) {
     return <div>Carregando...</div>
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
-  
+
   return children
 }
 
@@ -74,21 +84,21 @@ function App() {
     document.documentElement.style.width = '100vw';
     document.documentElement.style.maxWidth = '100vw';
     document.documentElement.style.overflow = 'hidden';
-    
+
     // Aplicar estilos ao body
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.width = '100vw';
     document.body.style.maxWidth = '100vw';
     document.body.style.overflow = 'hidden';
-    
+
     return () => {
       // Limpar estilos ao desmontar
       document.documentElement.style = '';
       document.body.style = '';
     };
   }, []);
-  
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -96,33 +106,45 @@ function App() {
         <DatabaseProvider>
           <Router>
             <Routes>
-            <Route path="/login" element={<Login />} />
-            {/* Rota principal protegida */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="familias" element={<FamilyManagement />} />
-              <Route path="modelos" element={<ModelManagement />} />
-              <Route path="solicitacoes" element={<QuoteRequests />} />
-              <Route path="solicitacoes/nova" element={<NewQuoteRequest />} />
-              <Route path="solicitacoes/:id/identificar" element={<IdentifyPart />} />
-              <Route path="dicionario" element={<PartDictionary />} />
-              <Route path="clientes" element={<ClientManagement />} />
-              <Route path="clientes/:id/historico" element={<ClientHistory />} />
-              <Route path="equipamentos" element={<EquipmentManagement />} />
-<Route path="marcas" element={<BrandManagement />} />
-              <Route path="abastecimentos" element={<FuelManagement />} />
-              <Route path="pecas" element={<PartManagement />} />
-              <Route path="pecas/cadastro" element={<PartManagement />} />
-              <Route path="usuarios" element={<UserManagement />} />
-              <Route path="configuracoes" element={<Settings />} />
-              <Route path="perfil" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-            <Route path="/configuracoes" element={<Settings />} />
+              {/* Knowledge Base Public Portal */}
+              <Route path="/portal" element={<PortalLayout />}>
+                <Route index element={<PortalHome />} />
+                <Route path="artigo/:id" element={<ArticleView />} />
+              </Route>
+
+              <Route path="/login" element={<Login />} />
+              {/* Rota principal protegida */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="familias" element={<FamilyManagement />} />
+                <Route path="modelos" element={<ModelManagement />} />
+                <Route path="solicitacoes" element={<QuoteRequests />} />
+                <Route path="solicitacoes/nova" element={<NewQuoteRequest />} />
+                <Route path="solicitacoes/:id/identificar" element={<IdentifyPart />} />
+                <Route path="dicionario" element={<PartDictionary />} />
+                <Route path="clientes" element={<ClientManagement />} />
+                <Route path="clientes/:id/historico" element={<ClientHistory />} />
+                <Route path="equipamentos" element={<EquipmentManagement />} />
+                <Route path="marcas" element={<BrandManagement />} />
+                <Route path="abastecimentos" element={<FuelManagement />} />
+                <Route path="pecas" element={<PartManagement />} />
+                <Route path="pecas/cadastro" element={<PartManagement />} />
+                <Route path="usuarios" element={<UserManagement />} />
+                <Route path="configuracoes" element={<Settings />} />
+                <Route path="perfil" element={<Profile />} />
+
+                {/* Knowledge Base Admin */}
+                <Route path="base-conhecimento" element={<KBAdminList />} />
+                <Route path="base-conhecimento/categorias" element={<KBAdminCategories />} />
+                <Route path="base-conhecimento/novo" element={<KBArticleEditor />} />
+                <Route path="base-conhecimento/editar/:id" element={<KBArticleEditor />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+              <Route path="/configuracoes" element={<Settings />} />
             </Routes>
           </Router>
         </DatabaseProvider>

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  AppBar, 
-  Box, 
-  CssBaseline, 
-  Divider, 
-  Drawer, 
-  IconButton, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  Toolbar, 
-  Typography, 
+import {
+  AppBar,
+  Box,
+  CssBaseline,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
   Avatar,
   Menu,
   MenuItem,
@@ -53,7 +53,8 @@ import {
   Agriculture as AgricultureIcon,
   PrecisionManufacturing as PrecisionManufacturingIcon,
   GroupWork as GroupWorkIcon,
-  Label as LabelIcon
+  Label as LabelIcon,
+  OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 
@@ -114,10 +115,10 @@ export default function Layout() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Calcular a largura atual do menu
   const currentMenuWidth = menuCollapsed ? 64 : drawerWidth;
-  
+
   // Estilo global para remover margens e padding do body
   useEffect(() => {
     document.body.style.margin = 0;
@@ -126,7 +127,7 @@ export default function Layout() {
     document.body.style.boxSizing = 'border-box';
     document.body.style.width = '100vw';
     document.body.style.height = '100vh';
-    
+
     return () => {
       document.body.style.margin = '';
       document.body.style.padding = '';
@@ -194,17 +195,17 @@ export default function Layout() {
 
   // Estrutura de menu com submenus
   const menuItems = [
-    { 
+    {
       id: 'dashboard',
-      text: 'Dashboard', 
-      icon: <DashboardIcon />, 
+      text: 'Dashboard',
+      icon: <DashboardIcon />,
       path: '/dashboard',
       type: 'item'
     },
-    { 
+    {
       id: 'pecas',
-      text: 'Peças', 
-      icon: <BuildIcon />, 
+      text: 'Peças',
+      icon: <BuildIcon />,
       type: 'submenu',
       submenu: [
         { text: 'Dicionário de Peças', icon: <BookIcon />, path: '/dicionario' },
@@ -212,10 +213,10 @@ export default function Layout() {
         { text: 'Cadastro', icon: <AddIcon />, path: '/pecas/cadastro' }
       ]
     },
-    { 
+    {
       id: 'maquinas',
-      text: 'Máquinas', 
-      icon: <AgricultureIcon />, 
+      text: 'Máquinas',
+      icon: <AgricultureIcon />,
       type: 'submenu',
       submenu: [
         { text: 'Famílias', icon: <GroupWorkIcon />, path: '/familias' },
@@ -224,10 +225,10 @@ export default function Layout() {
         { text: 'Equipamentos', icon: <ConstructionIcon />, path: '/equipamentos' }
       ]
     },
-    { 
+    {
       id: 'clientes',
-      text: 'Clientes', 
-      icon: <BusinessIcon />, 
+      text: 'Clientes',
+      icon: <BusinessIcon />,
       type: 'submenu',
       submenu: [
         { text: 'Listar Clientes', icon: <GroupIcon />, path: '/clientes' },
@@ -235,18 +236,21 @@ export default function Layout() {
         { text: 'Abastecimento', icon: <GasStationIcon />, path: '/abastecimentos' }
       ]
     },
-    { 
+    {
       id: 'configuracoes',
-      text: 'Configurações', 
-      icon: <SettingsIcon />, 
+      text: 'Configurações',
+      icon: <SettingsIcon />,
       type: 'submenu',
       submenu: [
         { text: 'Gerenciar Usuários', icon: <ManageAccountsIcon />, path: '/usuarios' },
+        { text: 'Base de Conhecimento', icon: <BookIcon />, path: '/base-conhecimento' },
+        { text: 'Categorias da Base', icon: <CategoryIcon />, path: '/base-conhecimento/categorias' },
+        { text: 'Acessar Portal', icon: <OpenInNewIcon />, path: '/portal', target: '_blank' },
         { text: 'Ferramentas', icon: <ConstructionIcon />, path: '/configuracoes' }
       ]
     }
   ];
-  
+
   // Adicionar itens de menu exclusivos para administradores, se necessário
   if (currentUser?.role === 'admin') {
     // Exemplo: menuItems.push({ ... });
@@ -284,9 +288,9 @@ export default function Layout() {
             height: '64px'
           }}
         >
-          <Typography 
-            variant="h5" 
-            sx={{ 
+          <Typography
+            variant="h5"
+            sx={{
               fontWeight: 600,
               letterSpacing: 1,
               textAlign: 'center',
@@ -300,9 +304,9 @@ export default function Layout() {
             Appraizes
           </Typography>
         </Box>
-        <IconButton 
+        <IconButton
           onClick={toggleMenuCollapse}
-          sx={{ 
+          sx={{
             color: 'white',
             p: 0.5,
             ml: menuCollapsed ? 'auto' : 0,
@@ -319,14 +323,18 @@ export default function Layout() {
           // Determinar se este item ou algum de seus subitens está ativo
           const isItemActive = item.type === 'item' ? isPathActive(item.path) : isSubmenuActive(item.submenu || []);
           const isExpanded = expandedMenu === item.id;
-          
+
           return (
             <React.Fragment key={item.id}>
               <ListItem disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton 
+                <ListItemButton
                   onClick={() => {
                     if (item.type === 'item') {
-                      navigate(item.path);
+                      if (item.target === '_blank') {
+                        window.open(item.path, '_blank');
+                      } else {
+                        navigate(item.path);
+                      }
                     } else {
                       handleMenuExpand(item.id);
                     }
@@ -343,7 +351,7 @@ export default function Layout() {
                     justifyContent: menuCollapsed ? 'center' : 'flex-start'
                   }}
                 >
-                  <ListItemIcon sx={{ 
+                  <ListItemIcon sx={{
                     color: isItemActive ? 'primary.main' : 'text.secondary',
                     minWidth: menuCollapsed ? 0 : 40,
                     mr: menuCollapsed ? 0 : 1
@@ -352,8 +360,8 @@ export default function Layout() {
                   </ListItemIcon>
                   {!menuCollapsed && (
                     <>
-                      <ListItemText 
-                        primary={item.text} 
+                      <ListItemText
+                        primary={item.text}
                         primaryTypographyProps={{
                           fontWeight: isItemActive ? 600 : 400,
                           color: isItemActive ? 'primary.main' : 'text.primary',
@@ -364,8 +372,8 @@ export default function Layout() {
                       />
                       {item.type === 'submenu' && (
                         <Box component="span" sx={{ ml: 'auto', transition: 'transform 0.3s' }}>
-                          {isExpanded ? 
-                            <ExpandMoreIcon sx={{ color: isItemActive ? 'primary.main' : 'text.secondary' }} /> : 
+                          {isExpanded ?
+                            <ExpandMoreIcon sx={{ color: isItemActive ? 'primary.main' : 'text.secondary' }} /> :
                             <ChevronRightIcon sx={{ color: isItemActive ? 'primary.main' : 'text.secondary' }} />}
                         </Box>
                       )}
@@ -373,7 +381,7 @@ export default function Layout() {
                   )}
                 </ListItemButton>
               </ListItem>
-              
+
               {/* Submenu */}
               {item.type === 'submenu' && (
                 <Collapse in={isExpanded && !menuCollapsed} timeout="auto" unmountOnExit>
@@ -383,7 +391,13 @@ export default function Layout() {
                       return (
                         <ListItem key={subItem.text} disablePadding sx={{ mb: 0.5 }}>
                           <ListItemButton
-                            onClick={() => navigate(subItem.path)}
+                            onClick={() => {
+                              if (subItem.target === '_blank') {
+                                window.open(subItem.path, '_blank');
+                              } else {
+                                navigate(subItem.path);
+                              }
+                            }}
                             sx={{
                               borderRadius: 1.5,
                               py: 0.75,
@@ -395,7 +409,7 @@ export default function Layout() {
                               transition: 'background-color 0.2s ease-in-out'
                             }}
                           >
-                            <ListItemIcon sx={{ 
+                            <ListItemIcon sx={{
                               color: isSubItemActive ? 'primary.main' : 'text.secondary',
                               minWidth: 30,
                               fontSize: '0.85rem'
@@ -421,7 +435,7 @@ export default function Layout() {
           );
         })}
       </List>
-      
+
       <Box sx={{ mt: 'auto', p: 2 }}>
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -430,11 +444,11 @@ export default function Layout() {
               <InfoIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
             </Tooltip>
           ) : (
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
                 color: 'text.disabled',
                 px: 1
               }}
@@ -481,9 +495,9 @@ export default function Layout() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{ overflow: 'hidden', display: { xs: 'none', sm: 'block' } }}>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
+                <Typography
+                  variant="body2"
+                  sx={{
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -493,9 +507,9 @@ export default function Layout() {
                 >
                   {currentUser?.name || 'Usuário'}
                 </Typography>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
+                <Typography
+                  variant="caption"
+                  sx={{
                     color: 'white',
                     display: 'block',
                     lineHeight: 1.2,
@@ -507,8 +521,8 @@ export default function Layout() {
                   {currentUser?.email || 'usuário@exemplo.com'}
                 </Typography>
               </Box>
-              <Avatar 
-                sx={{ 
+              <Avatar
+                sx={{
                   bgcolor: 'warning.main',
                   color: 'warning.contrastText',
                   fontSize: '0.875rem',
@@ -580,8 +594,8 @@ export default function Layout() {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
               width: drawerWidth,
               backgroundColor: '#ffffff',
               borderRight: 'none'
@@ -596,8 +610,8 @@ export default function Layout() {
             display: { xs: 'none', sm: 'block' },
             margin: 0,
             padding: 0,
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
               width: currentMenuWidth,
               backgroundColor: '#ffffff',
               borderRight: 'none',

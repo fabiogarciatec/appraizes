@@ -12,7 +12,7 @@ const getBaseUrl = () => {
     console.log(`Detectado ambiente de desenvolvimento: ${devApiUrl}`);
     return devApiUrl;
   }
-  
+
   // Em produção, use a URL baseada no hostname atual
   const productionApiUrl = `https://${window.location.hostname}`;
   console.log(`Detectado ambiente de produção: ${productionApiUrl}`);
@@ -29,39 +29,39 @@ class ApiService {
   static getAuthToken() {
     return localStorage.getItem('authToken');
   }
-  
+
   static setAuthToken(token) {
     if (token) {
       localStorage.setItem('authToken', token);
       console.log('Token JWT armazenado');
     }
   }
-  
+
   static clearAuthToken() {
     localStorage.removeItem('authToken');
     console.log('Token JWT removido');
   }
-  
+
   // Adiciona o token JWT aos cabeçalhos da requisição
   static getAuthHeaders() {
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     };
-    
+
     const token = this.getAuthToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     return headers;
   }
-  
+
   // Método para construir a URL completa da API
   static getUrl(endpoint) {
     // Garante que endpoint seja uma string
     if (!endpoint) endpoint = '';
-    
+
     // Garante que o endpoint comece com /api/
     if (!endpoint.startsWith('/api/')) {
       if (endpoint.startsWith('/')) {
@@ -70,7 +70,7 @@ class ApiService {
         endpoint = `/api/${endpoint}`;
       }
     }
-    
+
     const finalUrl = `${API_BASE_URL}${endpoint}`;
     console.log(`URL final: ${finalUrl}`);
     return finalUrl;
@@ -82,11 +82,11 @@ class ApiService {
       // Constrói a URL completa
       const url = this.getUrl(endpoint);
       console.log(`Iniciando requisição GET para: ${url}`);
-      
+
       // Realiza a requisição com timeout de 10 segundos
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: this.getAuthHeaders(),
@@ -94,29 +94,29 @@ class ApiService {
         credentials: 'same-origin',
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
       console.log(`Resposta recebida de ${endpoint}:`, response.status);
-      
+
       // Verifica se a resposta foi bem-sucedida
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
       }
-      
+
       // Processa a resposta
       const data = await response.json();
       console.log(`Dados recebidos de ${endpoint}:`, data);
       return data;
     } catch (error) {
       console.error(`Erro na requisição GET para ${endpoint}:`, error);
-      
+
       // Para o endpoint de status, retorna um objeto vazio para evitar quebrar a aplicação
       if (endpoint === '/api/status' || endpoint.includes('status')) {
         console.warn('Retornando objeto de status de erro');
         return { status: 'error', error: error.message, timestamp: new Date().toISOString() };
       }
-      
+
       throw error;
     }
   }
@@ -126,11 +126,11 @@ class ApiService {
     try {
       const url = this.getUrl(endpoint);
       console.log(`Iniciando requisição POST para: ${url}`, data);
-      
+
       // Realiza a requisição com timeout de 10 segundos
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: this.getAuthHeaders(),
@@ -139,16 +139,16 @@ class ApiService {
         signal: controller.signal,
         body: JSON.stringify(data)
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       console.log(`Resposta recebida de ${endpoint}:`, response.status);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
       }
-      
+
       const responseData = await response.json();
       console.log(`Dados recebidos de ${endpoint}:`, responseData);
       return responseData;
@@ -158,16 +158,47 @@ class ApiService {
     }
   }
 
+  // Método específico para Uploads (FormData)
+  static async upload(endpoint, formData) {
+    try {
+      const url = this.getUrl(endpoint);
+      console.log(`Iniciando upload para: ${url}`);
+
+      const headers = this.getAuthHeaders();
+      // Remove Content-Type to let browser set it with boundary for FormData
+      delete headers['Content-Type'];
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+
+      console.log(`Resposta de upload recebida:`, response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
+      }
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error(`Erro no upload para ${endpoint}:`, error);
+      throw error;
+    }
+  }
+
   // Método para realizar requisições PUT
   static async put(endpoint, data) {
     try {
       const url = this.getUrl(endpoint);
       console.log(`Iniciando requisição PUT para: ${url}`, data);
-      
+
       // Realiza a requisição com timeout de 10 segundos
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
+
       const response = await fetch(url, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
@@ -176,16 +207,16 @@ class ApiService {
         signal: controller.signal,
         body: JSON.stringify(data)
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       console.log(`Resposta recebida de ${endpoint}:`, response.status);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
       }
-      
+
       const responseData = await response.json();
       console.log(`Dados recebidos de ${endpoint}:`, responseData);
       return responseData;
@@ -200,11 +231,11 @@ class ApiService {
     try {
       const url = this.getUrl(endpoint);
       console.log(`Iniciando requisição DELETE para: ${url}`);
-      
+
       // Realiza a requisição com timeout de 10 segundos
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
+
       const response = await fetch(url, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
@@ -212,20 +243,20 @@ class ApiService {
         credentials: 'same-origin',
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       console.log(`Resposta recebida de ${endpoint}:`, response.status);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
       }
-      
+
       // Tenta processar a resposta como JSON, mas aceita respostas vazias
       let data = {};
       const responseText = await response.text();
-      
+
       if (responseText) {
         try {
           data = JSON.parse(responseText);
@@ -233,7 +264,7 @@ class ApiService {
           console.log('Resposta não é JSON válido, mas isso é aceitável para DELETE:', responseText);
         }
       }
-      
+
       console.log(`Operação DELETE concluída para ${endpoint}`);
       return data;
     } catch (error) {
@@ -243,120 +274,120 @@ class ApiService {
   }
 
   // Métodos específicos para endpoints comuns
-  
+
   // Verificar status da API
   static async getApiStatus() {
     return this.get('/api/status');
   }
-  
+
   // Testar conexão com o banco de dados
   static async testDatabaseConnection() {
     return this.get('/api/database/test');
   }
-  
+
   // Obter estatísticas do banco de dados
   static async getDatabaseStats() {
     return this.get('/api/database/stats');
   }
-  
+
   // Obter todos os clientes
   static async getAllClients() {
     return this.get('/api/clients');
   }
-  
+
   // Obter um cliente específico por ID
   static async getClientById(id) {
     return this.get(`/api/clients/${id}`);
   }
-  
+
   // Criar um novo cliente
   static async createClient(clientData) {
     return this.post('/api/clients', clientData);
   }
-  
+
   // Atualizar um cliente existente
   static async updateClient(id, clientData) {
     return this.put(`/api/clients/${id}`, clientData);
   }
-  
+
   // Excluir um cliente
   static async deleteClient(id) {
     return this.delete(`/api/clients/${id}`);
   }
   // ===== MÉTODOS ESPECÍFICOS DE EQUIPAMENTOS =====
-  
+
   // Listar todos os equipamentos
   static async getAllEquipments() {
     return this.get('/api/equipments');
   }
-  
+
   // Obter um equipamento específico
   static async getEquipmentById(id) {
     return this.get(`/api/equipments/${id}`);
   }
-  
+
   // Criar um novo equipamento
   static async createEquipment(equipmentData) {
     return this.post('/api/equipments', equipmentData);
   }
-  
+
   // Atualizar um equipamento existente
   static async updateEquipment(id, equipmentData) {
     return this.put(`/api/equipments/${id}`, equipmentData);
   }
-  
+
   // Excluir um equipamento
   static async deleteEquipment(id) {
     return this.delete(`/api/equipments/${id}`);
   }
-  
+
   // Listar todos os modelos de máquinas
   static async getAllMachineModels() {
     return this.get('/api/machine-models');
   }
-  
+
   // Listar todas as famílias de máquinas
   static async getAllMachineFamilies() {
     return this.get('/api/machine-families');
   }
-  
+
   // ===== MÉTODOS ESPECÍFICOS DE USUÁRIOS =====
-  
+
   // Obter todos os usuários
   static async getAllUsers() {
     return this.get('/api/users');
   }
-  
+
   // Obter um usuário específico por ID
   static async getUserById(id) {
     return this.get(`/api/users/${id}`);
   }
-  
+
   // Criar um novo usuário
   static async createUser(userData) {
     return this.post('/api/users', userData);
   }
-  
+
   // Atualizar um usuário existente
   static async updateUser(id, userData) {
     return this.put(`/api/users/${id}`, userData);
   }
-  
+
   // Excluir um usuário
   static async deleteUser(id) {
     return this.delete(`/api/users/${id}`);
   }
-  
+
   // Autenticar usuário (login)
   static async login(credentials) {
     try {
       const response = await this.post('/api/auth/login', credentials);
-      
+
       // Se o login for bem-sucedido, armazena o token
       if (response.success && response.token) {
         this.setAuthToken(response.token);
       }
-      
+
       return response;
     } catch (error) {
       console.error('Erro durante login:', error);

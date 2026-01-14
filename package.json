@@ -12,7 +12,6 @@
     "preview": "vite preview",
     "setup-db": "node src/utils/setupDatabase.js",
     "test-db": "node src/utils/testDatabaseConnection.js",
-
     "simple-api": "node src/server/simpleApi.cjs",
     "new-api": "node src/server/newApi.cjs"
   },
@@ -31,11 +30,15 @@
     "formik": "^2.4.6",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-quill": "^2.0.0",
+    "react-quill-new": "^3.7.0",
     "react-router-dom": "^7.5.0",
     "recharts": "^2.15.2",
+    "uuid": "^13.0.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {

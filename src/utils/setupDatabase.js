@@ -185,6 +185,36 @@ CREATE TABLE IF NOT EXISTS client_history (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- Tabela de categorias da Base de Conhecimento
+CREATE TABLE IF NOT EXISTS kb_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    icon VARCHAR(50) DEFAULT 'Book',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    active BOOLEAN DEFAULT TRUE
+);
+
+-- Tabela de artigos da Base de Conhecimento
+CREATE TABLE IF NOT EXISTS kb_articles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    excerpt TEXT,
+    content LONGTEXT,
+    category_id INT NOT NULL,
+    author_id INT,
+    author_name VARCHAR(100) DEFAULT 'Admin',
+    views INT DEFAULT 0,
+    read_time VARCHAR(20) DEFAULT '5 min',
+    tags VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (category_id) REFERENCES kb_categories(id),
+    FOREIGN KEY (author_id) REFERENCES users(id)
+);
+
 -- Índices adicionais para otimização de consultas serão criados por procedimentos separados
 -- para evitar erros de duplicação
 
@@ -214,6 +244,15 @@ INSERT INTO machine_families (name) VALUES
 ('Tratores'),
 ('Motoniveladoras'),
 ('Retroescavadeiras')
+('Retroescavadeiras')
+ON DUPLICATE KEY UPDATE name = name;
+
+-- Inserção de dados iniciais para categorias da Base de Conhecimento
+INSERT INTO kb_categories (name, description, icon) VALUES 
+('Manuais', 'Guias passo a passo para utilizar o sistema.', 'Book'),
+('Solução de Problemas', 'Resoluções para erros comuns e falhas.', 'Build'),
+('FAQs', 'Perguntas frequentes sobre nossa plataforma.', 'Help'),
+('Atualizações', 'Notas de versão e novidades.', 'Update')
 ON DUPLICATE KEY UPDATE name = name;
 `;
 
@@ -221,21 +260,21 @@ ON DUPLICATE KEY UPDATE name = name;
 async function setupDatabase() {
   try {
     console.log('Iniciando configuração do banco de dados...');
-    
+
     // Verifica se o banco de dados existe e cria se necessário
     await dbManager.ensureDatabase();
-    
+
     // Inicializa o gerenciador de banco de dados
     await dbManager.initialize();
-    
+
     // Executa o script SQL completo
     await dbManager.executeFullScript(fullDatabaseScript);
-    
+
     console.log('Banco de dados configurado com sucesso!');
-    
+
     // Encerra a conexão com o banco de dados
     await dbManager.end();
-    
+
     return true;
   } catch (error) {
     console.error('Erro ao configurar o banco de dados:', error);
